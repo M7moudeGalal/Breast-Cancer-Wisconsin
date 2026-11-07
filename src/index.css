@@ -2,28 +2,72 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --paper: 247 245 240;
+  --card: 255 255 255;
+  --soft: 239 236 229;
+  --ink: 24 24 22;
+  --muted: 110 106 99;
+  --line: 226 222 213;
+  --accent: 31 58 95;
+  --benign: 46 122 89;
+  --malignant: 178 66 46;
+  color-scheme: light;
+}
+
+.dark {
+  --paper: 18 18 17;
+  --card: 27 27 25;
+  --soft: 36 36 33;
+  --ink: 238 236 231;
+  --muted: 158 154 146;
+  --line: 50 49 45;
+  --accent: 147 178 220;
+  --benign: 98 186 144;
+  --malignant: 234 118 94;
+  color-scheme: dark;
+}
+
 @layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 84px;
+  }
   body {
-    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    @apply bg-paper text-ink font-sans antialiased;
+    transition: background-color 0.4s ease, color 0.4s ease;
   }
-  code, pre, .font-mono {
-    font-family: 'JetBrains Mono', monospace;
+  ::selection {
+    background: rgb(var(--accent) / 0.2);
   }
 }
 
-/* Custom sleek scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(113, 113, 122, 0.35);
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(113, 113, 122, 0.6);
+@layer components {
+  .card {
+    @apply bg-card border border-line rounded-2xl shadow-card;
+  }
+  .eyebrow {
+    @apply font-mono text-[11px] uppercase tracking-[0.16em] text-muted;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-ink text-paper hover:bg-ink/85;
+  }
+  .btn-ghost {
+    @apply btn border border-line bg-card text-ink hover:border-ink/40;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-3.5 py-1.5 text-[13px] font-medium text-ink transition-all duration-200 hover:border-ink/40 active:scale-[0.97];
+  }
 }
 
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: rgb(var(--line)); border-radius: 999px; border: 3px solid rgb(var(--paper)); }
+::-webkit-scrollbar-track { background: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

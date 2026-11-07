@@ -1,17 +1,19 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OncoVision AI — Wisconsin Breast Cancer Clinical Diagnostic Platform</title>
+    <meta name="description" content="Breast cancer cytology classifier trained on the Wisconsin dataset. Try the 5 trained models in your browser." />
+    <title>Breast Cancer Cytology Classifier · Wisconsin Dataset</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='13' fill='%23F7F5F0' stroke='%231F3A5F' stroke-width='2.5'/><circle cx='18' cy='14' r='5' fill='%23B4432F'/></svg>" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script>
+      try { if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark'); } catch (e) {}
+    </script>
   </head>
-  <body class="bg-zinc-50 dark:bg-[#09090b] text-zinc-950 dark:text-zinc-50 antialiased selection:bg-blue-500/30">
+  <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
