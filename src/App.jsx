@@ -29,9 +29,11 @@ import {
   Cpu,
   RefreshCw,
   Eye,
+  MessageSquare,
 } from 'lucide-react';
 import { WBC_MODEL_BUNDLE } from './data/modelBundle';
 import { FEATURE_META, MODEL_META, runLocalInference } from './utils/inferenceEngine';
+import ChatPanel from './components/ChatPanel';
 
 const CLINICAL_PRESETS = [
   {
@@ -228,6 +230,7 @@ export default function App() {
 
   // Gallery Filter State
   const [galleryCategory, setGalleryCategory] = useState('ALL');
+  const [chatOpen, setChatOpen] = useState(false);
 
   // Toggle HTML dark class
   useEffect(() => {
@@ -620,6 +623,15 @@ export default function App() {
               <span>{backendOnline ? 'FastAPI Backend: Live' : 'Engine: Scikit-Learn Bundle'}</span>
               {isPredicting && <RefreshCw className="w-3 h-3 animate-spin ml-1" />}
             </div>
+
+            <button
+              onClick={() => setChatOpen((prev) => !prev)}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-[#059669] hover:bg-[#047857] text-[#000000] font-semibold text-xs transition-colors shadow-sm"
+              title="Open Gemini Clinical AI Assistant"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>AI Assistant</span>
+            </button>
 
             <button
               onClick={() => setDarkMode(!darkMode)}
@@ -1632,6 +1644,25 @@ export default function App() {
           Wisconsin Breast Cancer Original (UCI ID 15) • Mayer Romany
         </div>
       </footer>
+
+      {/* Floating AI Chat Action Button */}
+      {!chatOpen && (
+        <button
+          onClick={() => setChatOpen(true)}
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-xl shadow-blue-600/30 transition-all hover:scale-105"
+          aria-label="Open Gemini Clinical AI Chat"
+        >
+          <MessageSquare className="w-4 h-4" />
+          <span>Ask Clinical AI</span>
+        </button>
+      )}
+
+      {/* Gemini Clinical AI Streaming Chat Panel */}
+      <ChatPanel
+        isOpen={chatOpen}
+        onClose={() => setChatOpen(false)}
+        inferenceData={inferenceData}
+      />
     </div>
   );
 }
