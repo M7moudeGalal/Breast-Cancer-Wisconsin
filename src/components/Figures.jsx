@@ -1,26 +1,26 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Maximize2, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Maximize2, X, Image as ImageIcon, ZoomIn } from 'lucide-react';
 import { EASE, Reveal, SectionHeader } from './ui.jsx';
 
 const FIGS = [
-  ['fig_3_1_missing_values', 'Missing values', 'Where the dataset has gaps (Bare nuclei).', 'Data'],
-  ['fig_3_2_class_distribution', 'Class balance', 'How many benign vs. malignant samples.', 'Data'],
-  ['fig_3_3_feature_histograms', 'Feature distributions', 'Each feature split by diagnosis.', 'Data'],
-  ['fig_3_4_feature_boxplots', 'Box plots', 'Spread of each feature per class.', 'Data'],
-  ['fig_3_5_correlation_heatmap', 'Correlations', 'Which features move together.', 'Data'],
-  ['fig_3_6_standardization_comparison', 'Standardisation', 'Feature scales before and after scaling.', 'Data'],
-  ['fig_4_1_knn_tuning', 'KNN tuning', 'Choosing the number of neighbours.', 'Tuning'],
-  ['fig_4_2_dt_tuning', 'Decision tree tuning', 'Choosing depth and split rule.', 'Tuning'],
-  ['fig_4_3_rf_feature_importance', 'Random forest importance', 'Features the forest relies on.', 'Tuning'],
-  ['fig_4_4_ann_tuning', 'Neural network tuning', 'Hidden layer size and regularisation.', 'Tuning'],
-  ['fig_4_5_svm_tuning', 'SVM tuning', 'Regularisation strength and kernel width.', 'Tuning'],
-  ['fig_4_6_cv_comparison', 'Cross-validation', 'All models compared on training folds.', 'Tuning'],
-  ['fig_5_1_confusion_matrices', 'Confusion matrices', 'Right and wrong answers on the test set.', 'Results'],
-  ['fig_5_2_roc_and_metrics', 'ROC & metrics', 'Final comparison on unseen patients.', 'Results'],
+  ['fig_3_1_missing_values', 'Missing values audit', 'Heatmap of gaps in the dataset; 16 bare nuclei records identified for imputation.', 'Data Analysis'],
+  ['fig_3_2_class_distribution', 'Class balance', 'Breakdown of 458 benign (65.5%) vs. 241 malignant (34.5%) biopsies in the study.', 'Data Analysis'],
+  ['fig_3_3_feature_histograms', 'Feature distributions', 'Histograms for each of the 9 cytology scores, segregated by diagnosis.', 'Data Analysis'],
+  ['fig_3_4_feature_boxplots', 'Feature box plots', 'Quartile spread and outliers showing marked difference between classes.', 'Data Analysis'],
+  ['fig_3_5_correlation_heatmap', 'Correlation matrix', 'Feature collinearity; cell size & shape uniformity correlate strongly (r = 0.91).', 'Data Analysis'],
+  ['fig_3_6_standardization_comparison', 'Feature standardisation', 'Zero-mean and unit-variance scaling comparison before and after StandardScaler.', 'Data Analysis'],
+  ['fig_4_1_knn_tuning', 'KNN hyperparameter tuning', 'Cross-validation accuracy and recall across neighbour count (k = 1 to 25).', 'Model Tuning'],
+  ['fig_4_2_dt_tuning', 'Decision tree tuning', 'Evaluating tree depth and split criteria (Gini vs. Entropy) against overfitting.', 'Model Tuning'],
+  ['fig_4_3_rf_feature_importance', 'Random forest feature importance', 'Gini impurity reduction ranking cell size, shape, and bare nuclei as top predictors.', 'Model Tuning'],
+  ['fig_4_4_ann_tuning', 'Neural network tuning', 'Exploring hidden layer architecture (16 to 64 neurons) and L2 regularisation.', 'Model Tuning'],
+  ['fig_4_5_svm_tuning', 'SVM kernel & regularisation tuning', 'Grid search comparing linear vs. RBF kernels with varying penalty parameter C.', 'Model Tuning'],
+  ['fig_4_6_cv_comparison', '5-fold cross-validation comparison', 'Validation boxplots comparing all 5 algorithms across the training folds.', 'Model Tuning'],
+  ['fig_5_1_confusion_matrices', 'Test set confusion matrices', 'Detailed classification breakdown on all 139 unseen patients for each model.', 'Final Results'],
+  ['fig_5_2_roc_and_metrics', 'ROC curves & metrics comparison', 'Receiver Operating Characteristic curves and comparative performance bars.', 'Final Results'],
 ].map(([file, title, desc, group]) => ({ id: file, src: `/figures/${file}.png`, title, desc, group }));
 
-const GROUPS = ['All', 'Data', 'Tuning', 'Results'];
+const GROUPS = ['All', 'Data Analysis', 'Model Tuning', 'Final Results'];
 
 export default function Figures() {
   const [group, setGroup] = useState('All');
@@ -54,96 +54,170 @@ export default function Figures() {
   }, [open, move]);
 
   const active = FIGS.find((f) => f.id === open);
+  const activeIndex = active ? list.findIndex((f) => f.id === active.id) + 1 : 0;
 
   return (
-    <section id="figures" className="mx-auto max-w-6xl px-5 py-24">
-      <SectionHeader index="04" eyebrow="Notebook figures" title={<>The analysis, <em className="text-accent">step by step.</em></>}>
-        Every chart from the project notebook. Click one to view it full size; use the arrow keys to browse.
+    <section id="figures" className="mx-auto max-w-6xl px-5 py-20">
+      <SectionHeader
+        index="04"
+        eyebrow="Research Gallery"
+        title={<>Explore the original <em className="text-accent">research figures.</em></>}
+      >
+        Every analytical chart generated during the project lifecycle. Filter by stage to inspect data distributions,
+        hyperparameter sweeps, or final test set comparisons. Click any figure to open full size.
       </SectionHeader>
 
-      <Reveal className="mb-6 flex gap-1">
-        {GROUPS.map((g) => (
-          <button
-            key={g}
-            onClick={() => setGroup(g)}
-            className={`relative rounded-full px-4 py-1.5 text-[13px] transition-colors ${group === g ? 'text-paper' : 'text-muted hover:text-ink'}`}
-          >
-            {group === g && <motion.span layoutId="fig-group" className="absolute inset-0 rounded-full bg-ink" transition={{ type: 'spring', stiffness: 480, damping: 36 }} />}
-            <span className="relative">{g}</span>
-          </button>
-        ))}
+      {/* Category filter pills */}
+      <Reveal className="mb-8 flex flex-wrap gap-1.5 rounded-2xl bg-card border border-line p-1.5 shadow-sm max-w-fit">
+        {GROUPS.map((g) => {
+          const activeTab = group === g;
+          const count = g === 'All' ? FIGS.length : FIGS.filter((f) => f.group === g).length;
+          return (
+            <button
+              key={g}
+              onClick={() => setGroup(g)}
+              className={`relative rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
+                activeTab ? 'text-paper' : 'text-muted hover:text-ink hover:bg-soft/60'
+              }`}
+            >
+              {activeTab && (
+                <motion.span
+                  layoutId="fig-group"
+                  className="absolute inset-0 rounded-xl bg-ink shadow-sm"
+                  transition={{ type: 'spring', stiffness: 480, damping: 36 }}
+                />
+              )}
+              <span className="relative z-10 flex items-center gap-1.5">
+                <span>{g}</span>
+                <span
+                  className={`font-mono text-[10px] px-1.5 py-0.2 rounded-full ${
+                    activeTab ? 'bg-paper/20 text-paper' : 'bg-soft text-muted'
+                  }`}
+                >
+                  {count}
+                </span>
+              </span>
+            </button>
+          );
+        })}
       </Reveal>
 
-      <motion.div layout className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Image Cards Grid */}
+      <motion.div layout className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <AnimatePresence mode="popLayout">
           {list.map((f, i) => (
             <motion.button
               layout
               key={f.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96 }}
-              transition={{ duration: 0.45, ease: EASE, delay: Math.min(i, 8) * 0.04 }}
+              transition={{ duration: 0.4, ease: EASE, delay: Math.min(i, 6) * 0.04 }}
               onClick={() => setOpen(f.id)}
-              className="group card overflow-hidden text-left transition-shadow hover:shadow-lift"
+              className="group card overflow-hidden text-left hover:shadow-lift hover:border-ink/20 transition-all flex flex-col"
             >
-              <div className="relative aspect-[4/3] overflow-hidden border-b border-line bg-white">
-                <motion.img
-                  layoutId={`img-${f.id}`}
+              <div className="relative aspect-[16/10] overflow-hidden border-b border-line bg-white/95 flex items-center justify-center p-3">
+                <img
                   src={f.src}
                   alt={f.title}
                   loading="lazy"
-                  className="h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-[1.04]"
+                  className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105"
                 />
-                <span className="absolute right-3 top-3 rounded-full bg-ink/80 p-1.5 text-paper opacity-0 transition-opacity group-hover:opacity-100">
-                  <Maximize2 className="h-3.5 w-3.5" />
+                <span className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full bg-ink/80 px-2.5 py-1 text-[11px] font-medium text-paper opacity-0 backdrop-blur transition-opacity group-hover:opacity-100 shadow-sm">
+                  <ZoomIn className="h-3 w-3" />
+                  <span>Enlarge</span>
                 </span>
               </div>
-              <div className="p-4">
-                <div className="eyebrow mb-1">{f.group}</div>
-                <div className="font-medium">{f.title}</div>
-                <div className="mt-0.5 text-[13px] text-muted">{f.desc}</div>
+              <div className="p-5 flex-1 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="eyebrow">{f.group}</span>
+                    <span className="font-mono text-[10px] text-muted">Figure #{f.id.replace('fig_', '').replace(/_/g, '.')}</span>
+                  </div>
+                  <h4 className="font-display text-lg font-semibold text-ink group-hover:text-accent transition-colors">
+                    {f.title}
+                  </h4>
+                  <p className="mt-1 text-xs text-muted leading-relaxed">{f.desc}</p>
+                </div>
               </div>
             </motion.button>
           ))}
         </AnimatePresence>
       </motion.div>
 
+      {/* Lightbox / Modal */}
       <AnimatePresence>
         {active && (
           <motion.div
-            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setOpen(null)}
           >
             <motion.div
-              className="relative flex max-h-full w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-card"
+              className="relative flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-card border border-line shadow-2xl"
               onClick={(e) => e.stopPropagation()}
-              initial={{ y: 20 }}
-              animate={{ y: 0 }}
-              exit={{ y: 20 }}
+              initial={{ scale: 0.96, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.96, opacity: 0 }}
+              transition={{ duration: 0.25, ease: EASE }}
             >
-              <div className="flex items-center justify-between gap-4 border-b border-line px-5 py-3">
+              {/* Header */}
+              <div className="flex items-center justify-between gap-4 border-b border-line px-6 py-4 bg-paper/60 backdrop-blur">
                 <div>
-                  <div className="font-medium">{active.title}</div>
-                  <div className="text-[12px] text-muted">{active.desc}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="eyebrow">{active.group}</span>
+                    <span className="text-muted">·</span>
+                    <span className="text-xs font-mono text-muted">
+                      Figure {activeIndex} of {list.length}
+                    </span>
+                  </div>
+                  <h3 className="font-display text-xl font-semibold text-ink">{active.title}</h3>
+                  <p className="text-xs text-muted mt-0.5">{active.desc}</p>
                 </div>
-                <div className="flex items-center gap-1">
-                  <button aria-label="Previous figure" onClick={() => move(-1)} className="rounded-full p-2 hover:bg-soft">
-                    <ChevronLeft className="h-4 w-4" />
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    aria-label="Previous figure (Left Arrow)"
+                    onClick={() => move(-1)}
+                    className="rounded-full p-2 hover:bg-soft text-muted hover:text-ink transition border border-transparent hover:border-line"
+                    title="Previous (Left Arrow)"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
                   </button>
-                  <button aria-label="Next figure" onClick={() => move(1)} className="rounded-full p-2 hover:bg-soft">
-                    <ChevronRight className="h-4 w-4" />
+                  <button
+                    aria-label="Next figure (Right Arrow)"
+                    onClick={() => move(1)}
+                    className="rounded-full p-2 hover:bg-soft text-muted hover:text-ink transition border border-transparent hover:border-line"
+                    title="Next (Right Arrow)"
+                  >
+                    <ChevronRight className="h-5 w-5" />
                   </button>
-                  <button aria-label="Close" onClick={() => setOpen(null)} className="rounded-full p-2 hover:bg-soft">
-                    <X className="h-4 w-4" />
+                  <button
+                    aria-label="Close dialog (Escape)"
+                    onClick={() => setOpen(null)}
+                    className="rounded-full p-2 hover:bg-soft text-muted hover:text-ink transition border border-transparent hover:border-line"
+                    title="Close (Esc)"
+                  >
+                    <X className="h-5 w-5" />
                   </button>
                 </div>
               </div>
-              <div className="min-h-0 flex-1 overflow-auto bg-white p-4">
-                <motion.img layoutId={`img-${active.id}`} src={active.src} alt={active.title} className="mx-auto max-h-[78vh] w-auto object-contain" />
+
+              {/* Image View */}
+              <div className="min-h-0 flex-1 overflow-auto bg-white p-6 flex items-center justify-center">
+                <img
+                  src={active.src}
+                  alt={active.title}
+                  className="max-h-[72vh] w-auto max-w-full object-contain drop-shadow-sm select-none"
+                />
+              </div>
+
+              {/* Bottom bar */}
+              <div className="border-t border-line px-6 py-2.5 bg-paper/40 text-[11px] font-mono text-muted flex items-center justify-between">
+                <span>Use ← and → arrow keys to navigate, Esc to close</span>
+                <span className="text-ink font-semibold">Wisconsin Cytology Research</span>
               </div>
             </motion.div>
           </motion.div>

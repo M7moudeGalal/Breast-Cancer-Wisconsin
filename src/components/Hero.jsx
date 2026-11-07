@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowDown, ListChecks } from 'lucide-react';
+import { ArrowDown, BookOpen, Sparkles } from 'lucide-react';
 import { BUNDLE, PRIMARY } from '../lib/engine.js';
 import { Counter, EASE } from './ui.jsx';
 
@@ -17,21 +17,33 @@ function useCells() {
   return useMemo(() => {
     const r = rng(7);
     const cells = [];
-    for (let i = 0; i < 22; i++) {
+    for (let i = 0; i < 24; i++) {
       const malignant = i % 5 === 0;
-      const size = malignant ? 22 + r() * 14 : 14 + r() * 9;
+      const size = malignant ? 20 + r() * 12 : 13 + r() * 9;
+      // Distribute organically inside the microscope radius (176)
+      const angle = r() * Math.PI * 2;
+      const dist = 24 + r() * 116;
+      const cx = 200 + Math.cos(angle) * dist;
+      const cy = 200 + Math.sin(angle) * dist;
+
+      const dx = (r() - 0.5) * 42;
+      const dy = (r() - 0.5) * 42;
+      const dur = 4.5 + r() * 4.5;
+      const rotDelta = (r() - 0.5) * 30;
+
       cells.push({
         id: i,
-        cx: 40 + r() * 320,
-        cy: 40 + r() * 320,
+        cx,
+        cy,
         size,
         malignant,
         rot: r() * 180,
         squash: 0.72 + r() * 0.24,
         nucleus: malignant ? 0.5 + r() * 0.15 : 0.32 + r() * 0.08,
-        dx: (r() - 0.5) * 26,
-        dy: (r() - 0.5) * 26,
-        dur: 9 + r() * 8,
+        dx,
+        dy,
+        dur,
+        rotDelta,
       });
     }
     return cells;
@@ -59,10 +71,15 @@ function MicroscopeField() {
         </defs>
 
         {/* outer rotating scale ring */}
-        <motion.g
-          animate={{ rotate: 360 }}
-          transition={{ duration: 120, repeat: Infinity, ease: 'linear' }}
-        >
+        <g>
+          <animateTransform
+            attributeName="transform"
+            type="rotate"
+            from="0 200 200"
+            to="360 200 200"
+            dur="90s"
+            repeatCount="indefinite"
+          />
           {Array.from({ length: 72 }).map((_, i) => {
             const a = (i / 72) * Math.PI * 2;
             const long = i % 6 === 0;
@@ -81,49 +98,58 @@ function MicroscopeField() {
               />
             );
           })}
-        </motion.g>
+        </g>
 
         <circle cx="200" cy="200" r="176" fill="rgb(var(--card))" />
 
         <g clipPath="url(#field)">
           {cells.map((c) => (
-            <motion.g
-              key={c.id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1, x: [0, c.dx, 0], y: [0, c.dy, 0] }}
-              transition={{
-                opacity: { duration: 0.8, delay: 0.4 + c.id * 0.04 },
-                x: { duration: c.dur, repeat: Infinity, ease: 'easeInOut' },
-                y: { duration: c.dur * 1.2, repeat: Infinity, ease: 'easeInOut' },
-              }}
-            >
-              <g transform={`translate(${c.cx} ${c.cy}) rotate(${c.rot})`}>
-                <ellipse
-                  rx={c.size}
-                  ry={c.size * c.squash}
-                  fill={c.malignant ? 'rgb(var(--malignant) / 0.10)' : 'rgb(var(--benign) / 0.09)'}
-                  stroke={c.malignant ? 'rgb(var(--malignant) / 0.55)' : 'rgb(var(--benign) / 0.45)'}
-                  strokeWidth="1.2"
+            <g key={c.id} transform={`translate(${c.cx} ${c.cy})`}>
+              <g>
+                <animateTransform
+                  attributeName="transform"
+                  type="translate"
+                  values={`0 0; ${c.dx} ${c.dy}; ${-c.dx * 0.75} ${-c.dy * 0.6}; ${c.dx * 0.5} ${c.dy * 0.8}; 0 0`}
+                  keyTimes="0; 0.3; 0.6; 0.85; 1"
+                  dur={`${c.dur}s`}
+                  repeatCount="indefinite"
                 />
-                <ellipse
-                  cx={c.malignant ? c.size * 0.12 : 0}
-                  rx={c.size * c.nucleus}
-                  ry={c.size * c.nucleus * (c.malignant ? 0.78 : 0.95)}
-                  fill={c.malignant ? 'rgb(var(--malignant) / 0.55)' : 'rgb(var(--accent) / 0.45)'}
-                />
+                <g transform={`rotate(${c.rot})`}>
+                  <animateTransform
+                    attributeName="transform"
+                    type="rotate"
+                    values={`0; ${c.rotDelta}; ${-c.rotDelta * 0.7}; 0`}
+                    dur={`${c.dur * 1.25}s`}
+                    repeatCount="indefinite"
+                    additive="sum"
+                  />
+                  <ellipse
+                    rx={c.size}
+                    ry={c.size * c.squash}
+                    fill={c.malignant ? 'rgb(var(--malignant) / 0.15)' : 'rgb(var(--benign) / 0.12)'}
+                    stroke={c.malignant ? 'rgb(var(--malignant) / 0.65)' : 'rgb(var(--benign) / 0.55)'}
+                    strokeWidth="1.3"
+                  />
+                  <ellipse
+                    cx={c.malignant ? c.size * 0.12 : 0}
+                    rx={c.size * c.nucleus}
+                    ry={c.size * c.nucleus * (c.malignant ? 0.78 : 0.95)}
+                    fill={c.malignant ? 'rgb(var(--malignant) / 0.65)' : 'rgb(var(--accent) / 0.55)'}
+                  />
+                </g>
               </g>
-            </motion.g>
+            </g>
           ))}
 
           {/* scanning line */}
-          <motion.rect
-            x="0"
-            width="400"
-            height="2"
-            fill="rgb(var(--accent) / 0.25)"
-            animate={{ y: [30, 370, 30] }}
-            transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
-          />
+          <rect x="0" width="400" height="2" fill="rgb(var(--accent) / 0.35)">
+            <animate
+              attributeName="y"
+              values="25; 375; 25"
+              dur="6.5s"
+              repeatCount="indefinite"
+            />
+          </rect>
           <circle cx="200" cy="200" r="176" fill="url(#vignette)" />
         </g>
 
@@ -134,63 +160,35 @@ function MicroscopeField() {
         </g>
         <circle cx="200" cy="200" r="176" fill="none" stroke="rgb(var(--ink) / 0.8)" strokeWidth="1.5" />
       </svg>
-
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        style={{ x: '-50%' }}
-        transition={{ delay: 1.2, duration: 0.6 }}
-        className="absolute bottom-3 left-1/2 flex items-center gap-4 whitespace-nowrap rounded-full border border-line bg-card/90 px-4 py-1.5 font-mono text-[11px] text-muted backdrop-blur"
-      >
-        <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-benign" /> benign-like
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-malignant" /> malignant-like
-        </span>
-        <span>FNA · ×400</span>
-      </motion.div>
     </motion.div>
   );
 }
 
 const HEADLINE = ['Reading', 'a', 'biopsy,', 'one', 'cell', 'feature', 'at', 'a', 'time.'];
 
-export default function Hero() {
+export default function Hero({ onOpenGuide }) {
   const m = BUNDLE.test_metrics[PRIMARY];
   const c = BUNDLE.counts;
   const stats = [
-    { value: c.total, decimals: 0, suffix: '', label: 'patient samples' },
-    { value: m.accuracy * 100, decimals: 1, suffix: '%', label: 'accuracy on unseen cases' },
-    { value: m.tp, decimals: 0, suffix: ` / ${m.tp + m.fn}`, label: 'cancers detected in test set' },
-    { value: 5, decimals: 0, suffix: '', label: 'models compared' },
+    { value: c.total, decimals: 0, suffix: '', label: 'Patient samples', hint: 'Wisconsin FNA dataset' },
+    { value: m.accuracy * 100, decimals: 1, suffix: '%', label: 'Unseen case accuracy', hint: 'Held-out test set' },
+    { value: m.tp, decimals: 0, suffix: ` / ${m.tp + m.fn}`, label: 'Cancers caught', hint: '100% test recall' },
+    { value: 5, decimals: 0, suffix: '', label: 'AI models compared', hint: 'Scikit-learn in-browser' },
   ];
 
   return (
-    <section id="top" className="relative overflow-hidden">
-      <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 pb-20 pt-10 md:grid-cols-[1.15fr_1fr] md:pt-16">
+    <section id="top" className="relative overflow-hidden pt-6 pb-16 md:pt-12 md:pb-24">
+      <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 md:grid-cols-[1.15fr_1fr] lg:gap-14">
         <div>
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: EASE }}
-            className="eyebrow mb-6 inline-flex items-center gap-2 rounded-full border border-line bg-card px-3 py-1"
-          >
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-benign opacity-60" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-benign" />
-            </span>
-            Wisconsin Breast Cancer dataset
-          </motion.div>
-
-          <h1 className="font-display text-[44px] leading-[1.02] tracking-tight sm:text-6xl lg:text-[76px]">
+          {/* Introductory badge removed per Requirement #2 */}
+          <h1 className="font-display text-[42px] leading-[1.03] tracking-tight sm:text-6xl lg:text-[72px]">
             {HEADLINE.map((w, i) => (
               <span key={i} className="inline-block overflow-hidden pb-1 align-bottom">
                 <motion.span
                   className={`inline-block ${w === 'cell' ? 'italic text-accent' : ''}`}
                   initial={{ y: '105%' }}
                   animate={{ y: 0 }}
-                  transition={{ duration: 0.8, ease: EASE, delay: 0.1 + i * 0.06 }}
+                  transition={{ duration: 0.75, ease: EASE, delay: 0.05 + i * 0.05 }}
                 >
                   {w}
                 </motion.span>
@@ -200,43 +198,54 @@ export default function Hero() {
           </h1>
 
           <motion.p
-            initial={{ opacity: 0, y: 14 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: EASE, delay: 0.7 }}
-            className="mt-6 max-w-lg text-[17px] leading-relaxed text-muted"
+            transition={{ duration: 0.65, ease: EASE, delay: 0.6 }}
+            className="mt-6 max-w-xl text-[16px] sm:text-[17px] leading-relaxed text-muted"
           >
-            Score nine features seen under the microscope and five trained models will tell you whether the
-            sample looks benign or malignant. Everything runs instantly in your browser.
+            An interactive research platform comparing five trained machine learning models on the Wisconsin
+            Breast Cancer dataset. Adjust 9 microscopic cell features to see real-time predictions, or evaluate
+            models against real patient biopsies directly in your browser.
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0, y: 14 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: EASE, delay: 0.85 }}
-            className="mt-8 flex flex-wrap gap-3"
+            transition={{ duration: 0.65, ease: EASE, delay: 0.75 }}
+            className="mt-8 flex flex-wrap items-center gap-3"
           >
-            <a href="#try" className="btn-primary group">
-              Try a sample
+            <a href="#try" className="btn-primary group text-[14px]">
+              <Sparkles className="h-4 w-4 text-paper/80" />
+              Try an Example
               <ArrowDown className="h-4 w-4 transition-transform group-hover:translate-y-0.5" />
             </a>
-            <a href="#cases" className="btn-ghost">
-              <ListChecks className="h-4 w-4" />
-              Test on real cases
-            </a>
+            {onOpenGuide ? (
+              <button onClick={onOpenGuide} className="btn-ghost text-[14px]">
+                <BookOpen className="h-4 w-4 text-muted" />
+                How It Works
+              </button>
+            ) : (
+              <a href="#cases" className="btn-ghost text-[14px]">
+                <BookOpen className="h-4 w-4 text-muted" />
+                How It Works
+              </a>
+            )}
           </motion.div>
 
-          <div className="mt-14 grid grid-cols-2 gap-x-6 gap-y-7 border-t border-line pt-8 sm:grid-cols-4">
+          <div className="mt-12 grid grid-cols-2 gap-x-6 gap-y-6 border-t border-line pt-7 sm:grid-cols-4">
             {stats.map((s, i) => (
               <motion.div
                 key={s.label}
-                initial={{ opacity: 0, y: 12 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, ease: EASE, delay: 1 + i * 0.08 }}
+                transition={{ duration: 0.55, ease: EASE, delay: 0.85 + i * 0.07 }}
+                className="group"
               >
-                <div className="font-display text-4xl leading-none">
-                  <Counter value={s.value} decimals={s.decimals} suffix={s.suffix} duration={1.6} />
+                <div className="font-display text-3xl sm:text-4xl leading-none text-ink">
+                  <Counter value={s.value} decimals={s.decimals} suffix={s.suffix} duration={1.4} />
                 </div>
-                <div className="mt-2 text-xs leading-snug text-muted">{s.label}</div>
+                <div className="mt-2 text-xs font-medium text-ink/90">{s.label}</div>
+                <div className="mt-0.5 text-[11px] text-muted">{s.hint}</div>
               </motion.div>
             ))}
           </div>

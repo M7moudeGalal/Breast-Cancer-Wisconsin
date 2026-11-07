@@ -44,22 +44,25 @@
 
 @layer components {
   .card {
-    @apply bg-card border border-line rounded-2xl shadow-card;
+    @apply bg-card border border-line rounded-2xl shadow-card transition-shadow duration-300;
+  }
+  .card-hover {
+    @apply hover:shadow-lift hover:border-ink/20 transition-all duration-300;
   }
   .eyebrow {
-    @apply font-mono text-[11px] uppercase tracking-[0.16em] text-muted;
+    @apply font-mono text-[11px] uppercase tracking-[0.16em] text-muted font-medium;
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper;
   }
   .btn-primary {
-    @apply btn bg-ink text-paper hover:bg-ink/85;
+    @apply btn bg-ink text-paper hover:bg-ink/85 shadow-sm;
   }
   .btn-ghost {
-    @apply btn border border-line bg-card text-ink hover:border-ink/40;
+    @apply btn border border-line bg-card text-ink hover:border-ink/40 shadow-sm;
   }
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-3.5 py-1.5 text-[13px] font-medium text-ink transition-all duration-200 hover:border-ink/40 active:scale-[0.97];
+    @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-3.5 py-1.5 text-[13px] font-medium text-ink transition-all duration-200 hover:border-ink/40 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:ring-offset-paper;
   }
 }
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { motion, useScroll, useSpring } from 'framer-motion';
-import { BookOpen, MessageCircle, Moon, Sun, ArrowUp } from 'lucide-react';
+import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
+import { BookOpen, Moon, Sun, ArrowUp, Menu, X } from 'lucide-react';
 import { BUNDLE, valuesFromCase } from './lib/engine.js';
 import Hero from './components/Hero.jsx';
 import Diagnose from './components/Diagnose.jsx';
@@ -8,13 +8,12 @@ import TestCases from './components/TestCases.jsx';
 import Performance from './components/Performance.jsx';
 import Figures from './components/Figures.jsx';
 import Guide from './components/Guide.jsx';
-import ChatDrawer from './components/ChatDrawer.jsx';
 
 const NAV = [
-  ['#try', '01 · Classify'],
-  ['#cases', '02 · Test cases'],
-  ['#performance', '03 · Results'],
-  ['#figures', '04 · Figures'],
+  ['#try', 'Try Classifier'],
+  ['#cases', 'Test Cases'],
+  ['#performance', 'Model Results'],
+  ['#figures', 'Research Figures'],
 ];
 
 export default function App() {
@@ -22,8 +21,8 @@ export default function App() {
   const [values, setValuesState] = useState(() => valuesFromCase(BUNDLE.cases[0]));
   const [loadedCase, setLoadedCase] = useState(() => BUNDLE.cases[0]);
   const [guideOpen, setGuideOpen] = useState(false);
-  const [chatOpen, setChatOpen] = useState(false);
   const [activeNav, setActiveNav] = useState('#try');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 140, damping: 28, mass: 0.2 });
@@ -47,7 +46,7 @@ export default function App() {
           if (entry.isIntersecting) setActiveNav(`#${entry.target.id}`);
         });
       },
-      { rootMargin: '-35% 0px -55% 0px' }
+      { rootMargin: '-30% 0px -50% 0px' }
     );
     ids.forEach((id) => {
       const el = document.getElementById(id);
@@ -69,24 +68,32 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-paper text-ink">
+    <div className="min-h-screen bg-paper text-ink transition-colors duration-300 overflow-x-hidden">
       {/* Top scroll progress bar */}
       <motion.div
         style={{ scaleX }}
-        className="fixed inset-x-0 top-0 z-50 h-[2px] origin-left bg-accent"
+        className="fixed inset-x-0 top-0 z-50 h-[3px] origin-left bg-accent"
       />
 
       {/* Sticky Editorial Header */}
-      <header className="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3.5">
-          <a href="#top" className="flex items-center gap-2.5">
-            <span className="relative flex h-6 w-6 items-center justify-center rounded-full border border-ink/80">
-              <span className="h-2 w-2 rounded-full bg-malignant" />
+      <header className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3">
+          <a href="#top" className="flex items-center gap-2.5 group">
+            <span className="relative flex h-7 w-7 items-center justify-center rounded-full border border-ink/40 bg-card shadow-sm transition-transform group-hover:scale-105">
+              <span className="h-2.5 w-2.5 rounded-full bg-malignant" />
             </span>
-            <span className="font-display text-xl tracking-tight">Wisconsin Cytology</span>
+            <div className="flex flex-col">
+              <span className="font-display text-lg tracking-tight leading-tight font-semibold">
+                Wisconsin Cytology
+              </span>
+              <span className="text-[10px] font-mono text-muted uppercase tracking-wider">
+                AI Research Platform
+              </span>
+            </div>
           </a>
 
-          <nav className="hidden items-center gap-1 rounded-full border border-line bg-card p-1 md:flex">
+          {/* Desktop Navigation */}
+          <nav className="hidden items-center gap-1 rounded-full border border-line bg-card p-1 md:flex shadow-sm">
             {NAV.map(([href, label]) => {
               const active = activeNav === href;
               return (
@@ -94,7 +101,7 @@ export default function App() {
                   key={href}
                   href={href}
                   onClick={() => setActiveNav(href)}
-                  className={`relative rounded-full px-3.5 py-1 text-[13px] transition-colors ${
+                  className={`relative rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
                     active ? 'text-paper' : 'text-muted hover:text-ink'
                   }`}
                 >
@@ -105,45 +112,101 @@ export default function App() {
                       transition={{ type: 'spring', stiffness: 460, damping: 36 }}
                     />
                   )}
-                  <span className="relative">{label}</span>
+                  <span className="relative z-10">{label}</span>
                 </a>
               );
             })}
           </nav>
 
+          {/* Header Action Buttons */}
           <div className="flex items-center gap-2">
-            <button onClick={() => setGuideOpen(true)} className="chip">
-              <BookOpen className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">How it works</span>
-            </button>
-            <button onClick={() => setChatOpen(true)} className="chip">
-              <MessageCircle className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Ask Q&amp;A</span>
+            <button
+              onClick={() => setGuideOpen(true)}
+              className="chip hidden sm:inline-flex"
+              title="Learn how the machine learning pipeline works"
+            >
+              <BookOpen className="h-3.5 w-3.5 text-muted" />
+              <span>How It Works</span>
             </button>
             <button
               onClick={() => setDark((d) => !d)}
-              aria-label="Toggle theme"
+              aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
               className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-line bg-card transition hover:border-ink/40"
             >
-              {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {dark ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-ink" />}
+            </button>
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-line bg-card md:hidden"
+              aria-label="Toggle navigation menu"
+            >
+              {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Dropdown */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden border-t border-line bg-card px-5 py-3 md:hidden shadow-lg"
+            >
+              <div className="flex flex-col gap-1 pb-2">
+                {NAV.map(([href, label]) => (
+                  <a
+                    key={href}
+                    href={href}
+                    onClick={() => {
+                      setActiveNav(href);
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`rounded-lg px-3 py-2 text-sm font-medium ${
+                      activeNav === href ? 'bg-soft text-ink font-semibold' : 'text-muted hover:text-ink'
+                    }`}
+                  >
+                    {label}
+                  </a>
+                ))}
+              </div>
+              <div className="flex items-center gap-2 border-t border-line pt-3">
+                <button
+                  onClick={() => {
+                    setGuideOpen(true);
+                    setMobileMenuOpen(false);
+                  }}
+                  className="chip flex-1 justify-center py-2"
+                >
+                  <BookOpen className="h-3.5 w-3.5" />
+                  <span>How It Works</span>
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
+      {/* Main Single Application Flow */}
       <main>
-        <Hero />
+        <Hero onOpenGuide={() => setGuideOpen(true)} />
         <Diagnose values={values} setValues={setValues} loadedCase={loadedCase} loadCase={loadCase} />
         <TestCases onTry={loadCase} />
         <Performance />
         <Figures />
       </main>
 
+      {/* Footer */}
       <footer className="border-t border-line bg-card/50">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-10 text-xs text-muted">
-          <div>
-            <span className="font-display text-base text-ink">Wisconsin Breast Cancer Cytology</span> ·{' '}
-            {BUNDLE.counts.total} samples · 5 trained scikit-learn models running in-browser · Mayer Romany
+          <div className="space-y-1">
+            <div className="font-display text-base text-ink font-semibold">
+              Wisconsin Breast Cancer Cytology Classification
+            </div>
+            <p>
+              {BUNDLE.counts.total} samples · 5 trained scikit-learn models running client-side · Mayer Romany
+            </p>
           </div>
           <a href="#top" className="chip">
             Back to top <ArrowUp className="h-3.5 w-3.5" />
@@ -151,13 +214,8 @@ export default function App() {
         </div>
       </footer>
 
+      {/* Drawers */}
       <Guide open={guideOpen} onClose={() => setGuideOpen(false)} />
-      <ChatDrawer
-        open={chatOpen}
-        onClose={() => setChatOpen(false)}
-        values={values}
-        loadedCase={loadedCase}
-      />
     </div>
   );
 }
