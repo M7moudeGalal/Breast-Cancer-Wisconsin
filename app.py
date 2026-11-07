@@ -403,3 +403,4 @@ with tab_eda:
         st.dataframe(test_part, use_container_width=True, height=300)
     else:
         st.dataframe(split_df, use_container_width=True, height=300)
+

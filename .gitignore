@@ -3,6 +3,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Node / Vite build artifacts
+node_modules/
+dist/
+.vercel/
+
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 */.ipynb_checkpoints/*
@@ -23,4 +28,3 @@ Thumbs.db
 .env
 *.tmp
 *.log
-
