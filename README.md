@@ -27,10 +27,13 @@ All five project phases—**Data Exploration (Task 1)**, **Data Preprocessing (T
 
 ```text
 Breast-Cancer-Wisconsin/
+├── app.py                              # Interactive Streamlit Clinical Decision Support & Evaluation App
 ├── wisconsin_breast_cancer.ipynb       # Unified end-to-end Jupyter Notebook (Tasks 1 → 5, 123 cells)
 ├── README.md                           # Project documentation, methodology, and results summary
 ├── requirements.txt                    # Python package dependencies for reproducible execution
 ├── .gitignore                          # Git ignore rules for Python and Jupyter environments
+├── .streamlit/
+│   └── config.toml                     # Custom dark clinical theme configuration for Streamlit
 ├── data/
 │   ├── breast-cancer-wisconsin.data    # Raw UCI dataset (699 rows × 11 columns)
 │   ├── breast-cancer-wisconsin.names   # Official UCI dataset documentation & clinical metadata
@@ -158,7 +161,15 @@ cd Breast-Cancer-Wisconsin
 pip install -r requirements.txt
 ```
 
-### 2. Launch or Re-Execute the Unified Notebook
+### 2. Launch the Interactive Clinical Streamlit Web App (`app.py`)
+Run the interactive clinical decision support dashboard locally:
+```bash
+streamlit run app.py
+```
+- **Live Clinical Diagnosis & 5-Model Consensus:** Adjust the 9 cytological sliders (`1–10`), simulate missing `bare_nuclei` (`NaN`), or pick held-out test presets to see live predictions and probabilities across all 5 tuned pipelines (`ANN (MLP)`, `Random Forest`, `SVM`, `KNN`, `Decision Tree`).
+- **Interactive Evaluation & EDA Tabs:** Browse Task 5 test-set benchmarks, Task 4 CV tuning curves, and Tasks 1–3 exploratory charts.
+
+### 3. Launch or Re-Execute the Unified Notebook
 Open `wisconsin_breast_cancer.ipynb` in Jupyter Notebook, JupyterLab, or VS Code:
 ```bash
 jupyter notebook wisconsin_breast_cancer.ipynb
@@ -167,3 +178,5 @@ Or execute the entire pipeline headlessly from the command line:
 ```bash
 jupyter nbconvert --to notebook --execute --inplace wisconsin_breast_cancer.ipynb
 ```
+
+
