@@ -82,7 +82,7 @@ function MicroscopeField() {
       style={{ rotateX, rotateY, transformPerspective: 900 }}
       className="relative mx-auto aspect-square w-full max-w-[360px] lg:max-w-[400px] xl:max-w-[425px] cursor-crosshair select-none"
     >
-      {/* Subtle ambient glow behind microscope */}
+// Subtle ambient glow behind microscope
       <div
         className="pointer-events-none absolute inset-8 rounded-full opacity-40 blur-3xl transition-colors duration-500"
         style={{
@@ -92,31 +92,6 @@ function MicroscopeField() {
               : 'radial-gradient(circle, rgb(var(--accent) / 0.35), rgb(var(--benign) / 0.25), transparent 70%)',
         }}
       />
-
-      {/* Floating top-left HUD pill */}
-      <motion.div
-        initial={{ opacity: 0, x: -16 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.9, duration: 0.6, ease: EASE }}
-        className="animate-float-slow absolute left-2 top-5 z-20 flex items-center gap-2 rounded-full border border-line bg-card/90 px-3.5 py-1.5 text-[11px] font-medium shadow-card backdrop-blur-md"
-      >
-        <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-benign opacity-75" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-benign" />
-        </span>
-        <span className="font-mono text-ink">FNA Live Lens · 400×</span>
-      </motion.div>
-
-      {/* Floating bottom-right HUD pill */}
-      <motion.div
-        initial={{ opacity: 0, x: 16 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 1.05, duration: 0.6, ease: EASE }}
-        className="absolute bottom-6 right-2 z-20 flex items-center gap-2 rounded-full border border-line bg-card/90 px-3.5 py-1.5 text-[11px] font-medium shadow-card backdrop-blur-md"
-      >
-        <ShieldCheck className="h-3.5 w-3.5 text-benign" />
-        <span className="text-muted">Hover any cell to inspect</span>
-      </motion.div>
 
       <svg viewBox="0 0 400 400" className="relative z-10 h-full w-full drop-shadow-sm" aria-hidden="true">
         <defs>
@@ -289,27 +264,35 @@ export default function Hero({ onOpenGuide }) {
     <section id="top" className="relative overflow-hidden border-b border-line/60 py-6 md:py-10 lg:min-h-[calc(100vh-57px)] lg:flex lg:items-center">
       <div className="mx-auto grid w-full max-w-[1320px] items-center gap-8 px-4 sm:px-6 lg:px-8 md:grid-cols-[1.2fr_0.8fr] lg:gap-10">
         <div>
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, ease: EASE }}
-            className="mb-3.5 inline-flex items-center gap-2 rounded-full border border-line bg-card px-3.5 py-1 text-xs font-medium shadow-sm"
-          >
-            <Activity className="h-3.5 w-3.5 text-accent" />
-            <span>Interactive Clinical Decision-Support Simulator</span>
-            <span className="rounded-full bg-benign/15 px-2 py-0.5 font-mono text-[10px] font-semibold text-benign">
-              100% Recall
-            </span>
-          </motion.div>
-
-          <h1 className="font-display text-[36px] leading-[1.04] tracking-tight sm:text-5xl lg:text-[54px] xl:text-[60px]">
+          <h1 className="font-display text-[38px] leading-[1.08] tracking-tight sm:text-5xl lg:text-[56px] xl:text-[62px]">
             {HEADLINE.map((w, i) => (
-              <span key={i} className="inline-block overflow-hidden pb-1 align-bottom">
+              <span key={i} className="inline-block overflow-visible pb-1 align-bottom">
                 <motion.span
-                  className={`inline-block ${w === 'cell' ? 'italic text-accent' : ''}`}
-                  initial={{ y: '105%' }}
-                  animate={{ y: 0 }}
-                  transition={{ duration: 0.75, ease: EASE, delay: 0.05 + i * 0.05 }}
+                  className={`inline-block ${
+                    w === 'cell'
+                      ? 'italic text-accent underline decoration-accent/40 decoration-wavy underline-offset-4'
+                      : ''
+                  }`}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{
+                    opacity: 1,
+                    y: [0, -7, 0],
+                  }}
+                  transition={{
+                    opacity: { duration: 0.6, delay: 0.05 + i * 0.04 },
+                    y: {
+                      duration: 3.2,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                      delay: i * 0.22,
+                    },
+                  }}
+                  whileHover={{
+                    scale: 1.18,
+                    y: -10,
+                    rotate: i % 2 === 0 ? 3 : -3,
+                    transition: { type: 'spring', stiffness: 450, damping: 14 },
+                  }}
                 >
                   {w}
                 </motion.span>

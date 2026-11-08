@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
-import { BookOpen, Moon, Sun, ArrowUp, Menu, X, CheckCircle2, AlertOctagon } from 'lucide-react';
+import { BookOpen, Moon, Sun, ArrowUp, Menu, X, CheckCircle2, AlertOctagon, Dna } from 'lucide-react';
 import { BUNDLE, valuesFromCase } from './lib/engine.js';
 import Hero from './components/Hero.jsx';
 import Diagnose from './components/Diagnose.jsx';
@@ -86,15 +86,15 @@ export default function App() {
       <header className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1320px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-2.5">
           <a href="#top" className="flex items-center gap-2.5 group">
-            <span className="relative flex h-7 w-7 items-center justify-center rounded-full border border-ink/40 bg-card shadow-sm transition-transform group-hover:scale-105">
-              <span className="h-2.5 w-2.5 rounded-full bg-malignant" />
+            <span className="relative flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-accent/25 via-ink to-ink text-paper shadow-md transition-all duration-300 group-hover:scale-105 group-hover:shadow-lift ring-1 ring-ink/20">
+              <Dna className="h-4 w-4 text-accent transition-transform duration-500 group-hover:rotate-180" />
             </span>
             <div className="flex flex-col">
-              <span className="font-display text-lg tracking-tight leading-tight font-semibold">
-                Wisconsin Cytology
+              <span className="font-display text-[17px] tracking-tight leading-tight font-bold bg-gradient-to-r from-ink via-ink to-accent bg-clip-text">
+                Cytology.AI
               </span>
-              <span className="text-[10px] font-mono text-muted uppercase tracking-wider">
-                AI Research Platform
+              <span className="text-[9.5px] font-mono text-muted uppercase tracking-wider font-medium">
+                Clinical Diagnostic Suite
               </span>
             </div>
           </a>
@@ -209,7 +209,7 @@ export default function App() {
         <div className="mx-auto flex max-w-[1320px] flex-wrap items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-8 text-xs text-muted">
           <div className="space-y-1">
             <div className="font-display text-base text-ink font-semibold">
-              Wisconsin Breast Cancer Cytology Classification
+              Cytology.AI · Clinical Diagnostic Suite
             </div>
             <p>
               {BUNDLE.counts.total} samples · 5 trained scikit-learn models running client-side · Mayer Romany
