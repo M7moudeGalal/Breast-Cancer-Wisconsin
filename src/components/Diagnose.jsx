@@ -17,6 +17,7 @@ import {
 import { BUNDLE, FEATURES, MODEL_ORDER, PRIMARY, predict } from '../lib/engine.js';
 import { Counter, EASE, Reveal, SectionHeader, pct } from './ui.jsx';
 import CytologyRadar from './CytologyRadar.jsx';
+import ClinicalTriage from './ClinicalTriage.jsx';
 
 const SHORT = {
   'ANN (MLP)': 'Neural Network (ANN)',
@@ -27,15 +28,15 @@ const SHORT = {
 };
 
 const FEATURE_EXPLANATIONS = {
-  clump_thickness: '1 = single flat layer · 10 = thick multi-layer masses',
-  uniformity_of_cell_size: '1 = identical cell sizes · 10 = extreme size variation',
-  uniformity_of_cell_shape: '1 = regular round shape · 10 = deformed contours',
-  marginal_adhesion: '1 = cells firmly bonded · 10 = loose cell detachment',
-  single_epithelial_cell_size: '1 = normal small epithelial · 10 = enlarged cells',
-  bare_nuclei: '1 = intact cytoplasm · 10 = frequent exposed nuclei',
-  bland_chromatin: '1 = fine smooth chromatin · 10 = coarse dark clumps',
-  normal_nucleoli: '1 = tiny indistinct nucleoli · 10 = prominent multiple',
-  mitoses: '1 = normal resting state · 10 = rapid cell division',
+  clump_thickness: '1 = Monolayer sheets (Benign) · 10 = Syncytial 3D clusters (Carcinoma)',
+  uniformity_of_cell_size: '1 = Monomorphic cells · 10 = Severe anisocytosis (size atypia)',
+  uniformity_of_cell_shape: '1 = Regular round contours · 10 = Marked pleomorphism (deformity)',
+  marginal_adhesion: '1 = Intact cohesive bonds · 10 = Discohesive infiltrative single cells',
+  single_epithelial_cell_size: '1 = Normal small ductal cells · 10 = Markedly enlarged macrocytes',
+  bare_nuclei: '1 = Benign stripped bipolar cells · 10 = Naked malignant tumor nuclei',
+  bland_chromatin: '1 = Powdery vesicular chromatin · 10 = Coarse hyperchromatic clumping',
+  normal_nucleoli: '1 = Inconspicuous micronucleoli · 10 = Prominent multiple macronucleoli',
+  mitoses: '1 = Quiescent non-dividing · 10 = Abnormal mitotic figures (proliferation)',
 };
 
 function usePresets() {
@@ -772,6 +773,11 @@ export default function Diagnose({ values, setValues, loadedCase, loadCase }) {
       <Reveal className="mt-5 grid grid-cols-1 lg:grid-cols-[1.3fr_0.9fr] gap-5 items-stretch">
         <Profile values={result.filled} />
         <CytologyRadar values={result.filled} mal={result.primary.pred === 1} />
+      </Reveal>
+
+      {/* Clinical Oncology Decision-Support & Triage Section */}
+      <Reveal className="mt-5">
+        <ClinicalTriage mal={result.primary.pred === 1} score={result.primary.score} />
       </Reveal>
     </section>
   );

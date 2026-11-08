@@ -60,21 +60,37 @@ export default function App() {
   }, [dark]);
 
   useEffect(() => {
+    const handleHash = () => {
+      try {
+        const h = window.location.hash.replace('#', '');
+        if (['overview', 'try', 'cases', 'performance', 'figures'].includes(h)) {
+          setActiveTab(h);
+        }
+      } catch {}
+    };
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
+
+  const switchTab = (tabId) => {
+    setActiveTab(tabId);
     try {
-      window.location.hash = activeTab;
+      if (window.location.hash.replace('#', '') !== tabId) {
+        window.history.replaceState(null, '', '#' + tabId);
+      }
     } catch {}
-  }, [activeTab]);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const setValues = (nextVals, c = null) => {
     setValuesState(nextVals);
     setLoadedCase(c);
   };
 
-  const loadCase = (c, shouldScroll = true) => {
+  const loadCase = (c) => {
     setValuesState(valuesFromCase(c));
     setLoadedCase(c);
-    setActiveTab('try');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    switchTab('try');
     if (toastTimer.current) clearTimeout(toastTimer.current);
     setToast(c);
     toastTimer.current = setTimeout(() => setToast(null), 3500);
@@ -94,19 +110,22 @@ export default function App() {
       <header className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1320px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-2.5">
           <button
-            onClick={() => {
-              setActiveTab('overview');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            onClick={() => switchTab('overview')}
             className="flex items-center gap-2.5 group text-left cursor-pointer"
           >
             <span className="relative flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-accent/25 via-ink to-ink text-paper shadow-md transition-all duration-300 group-hover:scale-105 group-hover:shadow-lift ring-1 ring-ink/20">
               <Dna className="h-4 w-4 text-accent transition-transform duration-500 group-hover:rotate-180" />
             </span>
             <div className="flex flex-col">
-              <span className="font-display text-[17px] tracking-tight leading-tight font-bold bg-gradient-to-r from-ink via-ink to-accent bg-clip-text">
-                Cytology.AI
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="font-display text-[17px] tracking-tight leading-tight font-bold bg-gradient-to-r from-ink via-ink to-accent bg-clip-text">
+                  Cytology.AI
+                </span>
+                <span className="hidden xl:inline-flex items-center gap-1 rounded-full border border-pink-500/30 bg-pink-500/10 px-2 py-0.2 text-[10px] font-semibold text-pink-600 dark:text-pink-400">
+                  <span>🎀</span>
+                  <span>Breast Oncology</span>
+                </span>
+              </div>
               <span className="text-[9.5px] font-mono text-muted uppercase tracking-wider font-medium">
                 Clinical Diagnostic Suite
               </span>
@@ -114,17 +133,14 @@ export default function App() {
           </button>
 
           {/* Desktop Navigation Tabs */}
-          <nav className="hidden items-center gap-1 rounded-full border border-line bg-card p-1 lg:flex shadow-sm">
+          <nav className="hidden items-center gap-1 rounded-full border border-line bg-card p-1 md:flex shadow-sm">
             {TABS.map((t) => {
               const active = activeTab === t.id;
               const Icon = t.icon;
               return (
                 <button
                   key={t.id}
-                  onClick={() => {
-                    setActiveTab(t.id);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
+                  onClick={() => switchTab(t.id)}
                   className={`relative flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] font-medium transition-colors cursor-pointer ${
                     active ? 'text-paper font-semibold' : 'text-muted hover:text-ink'
                   }`}
@@ -162,7 +178,7 @@ export default function App() {
             </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-line bg-card lg:hidden"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-line bg-card md:hidden cursor-pointer"
               aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
@@ -177,7 +193,7 @@ export default function App() {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden border-t border-line bg-card px-5 py-3 lg:hidden shadow-lg"
+              className="overflow-hidden border-t border-line bg-card px-5 py-3 md:hidden shadow-lg"
             >
               <div className="flex flex-col gap-1 pb-2">
                 {TABS.map((t) => {
@@ -187,9 +203,8 @@ export default function App() {
                     <button
                       key={t.id}
                       onClick={() => {
-                        setActiveTab(t.id);
+                        switchTab(t.id);
                         setMobileMenuOpen(false);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
                       className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-left ${
                         active ? 'bg-soft text-ink font-semibold' : 'text-muted hover:text-ink'
@@ -220,25 +235,19 @@ export default function App() {
 
       {/* Main Tabbed Application View */}
       <main className="relative z-10 flex-1">
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="sync" initial={false}>
           <motion.div
             key={activeTab}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.16, ease: 'easeOut' }}
           >
             {activeTab === 'overview' && (
               <Overview
                 onOpenGuide={() => setGuideOpen(true)}
-                onGoToTry={() => {
-                  setActiveTab('try');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                onGoToCases={() => {
-                  setActiveTab('cases');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
+                onGoToTry={() => switchTab('try')}
+                onGoToCases={() => switchTab('cases')}
               />
             )}
             {activeTab === 'try' && (

@@ -478,16 +478,15 @@ export default function Performance() {
   const cv = BUNDLE.cv_metrics[model];
 
   return (
-    <section id="performance" className="border-y border-line bg-card/40 py-12">
-      <div className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
-        <SectionHeader
-          index="03"
-          eyebrow="Evaluation &amp; Benchmarks"
-          title={<>How well do <em className="text-accent">the five models</em> perform?</>}
-        >
-          Evaluated against {BUNDLE.counts.test} strictly held-out patient biopsies ({BUNDLE.counts.test_benign} benign, {BUNDLE.counts.test_malignant} malignant).
-          Explore individual accuracy, sensitivity, confusion matrices, and ROC curves below.
-        </SectionHeader>
+    <section id="performance" className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8 py-12">
+      <SectionHeader
+        index="03"
+        eyebrow="Clinical Model Evaluation &amp; Benchmarks"
+        title={<>How well do <em className="text-accent">the five algorithms</em> perform?</>}
+      >
+        Evaluated against {BUNDLE.counts.test} strictly held-out patient biopsies ({BUNDLE.counts.test_benign} benign, {BUNDLE.counts.test_malignant} malignant).
+        Explore accuracy, sensitivity (recall), false alarms, confusion matrices, and ROC curves below.
+      </SectionHeader>
 
         {/* Model Selection Tabs */}
         <Reveal className="mb-4">
@@ -568,7 +567,6 @@ export default function Performance() {
             <Importance />
           </Reveal>
         </div>
-      </div>
     </section>
   );
 }

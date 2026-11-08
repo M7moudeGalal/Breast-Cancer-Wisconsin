@@ -60,11 +60,11 @@ export default function Figures() {
     <section id="figures" className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8 py-12">
       <SectionHeader
         index="04"
-        eyebrow="Research Gallery"
-        title={<>Explore the original <em className="text-accent">research figures.</em></>}
+        eyebrow="Scientific Oncology Atlas"
+        title={<>Explore the research <em className="text-accent">study figures.</em></>}
       >
-        Every analytical chart generated during the project lifecycle. Filter by stage to inspect data distributions,
-        hyperparameter sweeps, or final test set comparisons. Click any figure to open full size.
+        Every cytological chart and hyperparameter sweep generated across the scientific lifecycle of the Wisconsin Breast Cancer study.
+        Filter by stage to inspect data distributions, tuning sweeps, or test set ROC benchmarks.
       </SectionHeader>
 
       {/* Category filter pills */}

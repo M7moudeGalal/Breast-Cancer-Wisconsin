@@ -68,7 +68,7 @@ const FAQ = [
   },
   {
     q: 'Why is the Artificial Neural Network (ANN) the primary model?',
-    a: `On the held-out test set, the ANN achieved 100% recall (catching 39 of 39 cancers), the highest overall accuracy (${(ann.accuracy * 100).toFixed(1)}%), and the top ROC-AUC score (${ann.auc.toFixed(4)}) with only ${ann.fp} false alarms.`,
+    a: `On the held-out test set, the ANN achieved 100% recall (catching all ${ann.tp} of ${ann.tp + ann.fn} cancers), the highest overall accuracy (${(ann.accuracy * 100).toFixed(1)}%), and the top ROC-AUC score (${ann.auc.toFixed(4)}) with only ${ann.fp} false alarms.`,
   },
   {
     q: 'Can this tool replace a physician or hospital biopsy?',

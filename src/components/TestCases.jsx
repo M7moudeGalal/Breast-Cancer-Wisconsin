@@ -215,21 +215,21 @@ export default function TestCases({ onTry }) {
   const visible = rows.slice((current - 1) * PAGE, current * PAGE);
 
   const filters = [
-    { id: 'all', label: 'All Cases', count: counts.all },
+    { id: 'all', label: 'All Patients', count: counts.all },
     { id: 'benign', label: 'Confirmed Benign', count: counts.benign },
-    { id: 'malignant', label: 'Confirmed Malignant', count: counts.malignant },
-    { id: 'missed', label: 'Model Disagreements', count: counts.missed },
+    { id: 'malignant', label: 'Confirmed Malignant (Cancer)', count: counts.malignant },
+    { id: 'missed', label: 'Pipeline Disagreements', count: counts.missed },
   ];
 
   return (
-    <section id="cases" className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8 py-12 border-t border-line/60">
+    <section id="cases" className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8 py-12">
       <SectionHeader
         index="02"
-        eyebrow="Held-Out Patient Validation"
-        title={<>Inspect real patient cases <em className="text-accent">one by one.</em></>}
+        eyebrow="Clinical Cohort Validation (N=139)"
+        title={<>Inspect real patient biopsies <em className="text-accent">one by one.</em></>}
       >
-        Explore all {BUNDLE.counts.test} unseen patients from the test set. Compare what each of the five
-        algorithms predicted against the confirmed histological pathology.
+        Explore all {BUNDLE.counts.test} unseen patient biopsy cases from the University of Wisconsin FNA repository.
+        Compare what each of the five machine learning pipelines predicted against the confirmed histological pathology.
       </SectionHeader>
 
       <Reveal>

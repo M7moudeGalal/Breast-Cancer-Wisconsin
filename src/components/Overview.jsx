@@ -2,6 +2,7 @@ import React from 'react';
 import Hero from './Hero.jsx';
 import PipelineFlow from './PipelineFlow.jsx';
 import DatasetAnatomy from './DatasetAnatomy.jsx';
+import BreastCancerGuide from './BreastCancerGuide.jsx';
 import { Reveal } from './ui.jsx';
 
 export default function Overview({ onOpenGuide, onGoToTry, onGoToCases }) {
@@ -14,6 +15,9 @@ export default function Overview({ onOpenGuide, onGoToTry, onGoToCases }) {
         </Reveal>
         <Reveal delay={0.06}>
           <DatasetAnatomy />
+        </Reveal>
+        <Reveal delay={0.08}>
+          <BreastCancerGuide />
         </Reveal>
       </div>
     </div>
