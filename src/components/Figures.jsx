@@ -57,7 +57,7 @@ export default function Figures() {
   const activeIndex = active ? list.findIndex((f) => f.id === active.id) + 1 : 0;
 
   return (
-    <section id="figures" className="mx-auto max-w-6xl px-5 py-20">
+    <section id="figures" className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8 py-12">
       <SectionHeader
         index="04"
         eyebrow="Research Gallery"
@@ -68,7 +68,7 @@ export default function Figures() {
       </SectionHeader>
 
       {/* Category filter pills */}
-      <Reveal className="mb-8 flex flex-wrap gap-1.5 rounded-2xl bg-card border border-line p-1.5 shadow-sm max-w-fit">
+      <Reveal className="mb-5 flex flex-wrap gap-1.5 rounded-2xl bg-card border border-line p-1.5 shadow-sm max-w-fit">
         {GROUPS.map((g) => {
           const activeTab = group === g;
           const count = g === 'All' ? FIGS.length : FIGS.filter((f) => f.group === g).length;
@@ -76,9 +76,8 @@ export default function Figures() {
             <button
               key={g}
               onClick={() => setGroup(g)}
-              className={`relative rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
-                activeTab ? 'text-paper' : 'text-muted hover:text-ink hover:bg-soft/60'
-              }`}
+              className={`relative rounded-xl px-4 py-1.5 text-xs font-semibold transition-all ${activeTab ? 'text-paper' : 'text-muted hover:text-ink hover:bg-soft/60'
+                }`}
             >
               {activeTab && (
                 <motion.span
@@ -90,9 +89,8 @@ export default function Figures() {
               <span className="relative z-10 flex items-center gap-1.5">
                 <span>{g}</span>
                 <span
-                  className={`font-mono text-[10px] px-1.5 py-0.2 rounded-full ${
-                    activeTab ? 'bg-paper/20 text-paper' : 'bg-soft text-muted'
-                  }`}
+                  className={`font-mono text-[10px] px-1.5 py-0.2 rounded-full ${activeTab ? 'bg-paper/20 text-paper' : 'bg-soft text-muted'
+                    }`}
                 >
                   {count}
                 </span>
@@ -103,7 +101,7 @@ export default function Figures() {
       </Reveal>
 
       {/* Image Cards Grid */}
-      <motion.div layout className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <motion.div layout className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <AnimatePresence mode="popLayout">
           {list.map((f, i) => (
             <motion.button
@@ -116,28 +114,28 @@ export default function Figures() {
               onClick={() => setOpen(f.id)}
               className="group card overflow-hidden text-left hover:shadow-lift hover:border-ink/20 transition-all flex flex-col"
             >
-              <div className="relative aspect-[16/10] overflow-hidden border-b border-line bg-white/95 flex items-center justify-center p-3">
+              <div className="relative aspect-[16/10] overflow-hidden border-b border-line bg-white/95 flex items-center justify-center p-2.5">
                 <img
                   src={f.src}
                   alt={f.title}
                   loading="lazy"
                   className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105"
                 />
-                <span className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full bg-ink/80 px-2.5 py-1 text-[11px] font-medium text-paper opacity-0 backdrop-blur transition-opacity group-hover:opacity-100 shadow-sm">
+                <span className="absolute bottom-2.5 right-2.5 flex items-center gap-1 rounded-full bg-ink/80 px-2.5 py-1 text-[10.5px] font-medium text-paper opacity-0 backdrop-blur transition-opacity group-hover:opacity-100 shadow-sm">
                   <ZoomIn className="h-3 w-3" />
                   <span>Enlarge</span>
                 </span>
               </div>
-              <div className="p-5 flex-1 flex flex-col justify-between">
+              <div className="p-4 flex-1 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <span className="eyebrow">{f.group}</span>
                     <span className="font-mono text-[10px] text-muted">Figure #{f.id.replace('fig_', '').replace(/_/g, '.')}</span>
                   </div>
-                  <h4 className="font-display text-lg font-semibold text-ink group-hover:text-accent transition-colors">
+                  <h4 className="font-display text-base font-semibold text-ink group-hover:text-accent transition-colors leading-snug">
                     {f.title}
                   </h4>
-                  <p className="mt-1 text-xs text-muted leading-relaxed">{f.desc}</p>
+                  <p className="mt-1 text-[11.5px] text-muted leading-snug">{f.desc}</p>
                 </div>
               </div>
             </motion.button>

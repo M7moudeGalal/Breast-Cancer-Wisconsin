@@ -26,7 +26,7 @@ const MODEL_INFO = {
   'Decision Tree': { abbr: 'DT', fullName: 'Decision Tree', role: 'Rule' },
 };
 
-const PAGE = 10;
+const PAGE = 8;
 
 /* ---------- Live test runner: re-runs every test case in the browser ---------- */
 function TestRunner() {
@@ -55,13 +55,13 @@ function TestRunner() {
   const progress = cases.length > 0 ? state.done / cases.length : 0;
 
   return (
-    <div className="card p-6 md:p-8">
-      <div className="flex flex-col sm:flex-row items-start justify-between gap-5">
-        <div className="max-w-xl">
-          <div className="flex items-center gap-2 mb-1.5">
+    <div className="card p-5">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="max-w-2xl">
+          <div className="flex items-center gap-2 mb-1">
             <span className="eyebrow">Real-Time Batch Evaluation</span>
             <span
-              className={`text-[11px] font-mono px-2 py-0.5 rounded-full font-medium ${
+              className={`text-[10.5px] font-mono px-2 py-0.5 rounded-full font-medium ${
                 state.status === 'done'
                   ? 'bg-benign/15 text-benign'
                   : state.status === 'running'
@@ -76,28 +76,24 @@ function TestRunner() {
                 : 'Ready to Run'}
             </span>
           </div>
-          <h3 className="font-display text-2xl sm:text-3xl font-semibold">
-            Evaluate All {cases.length} Unseen Test Cases
+          <h3 className="font-display text-xl sm:text-2xl font-semibold">
+            Evaluate All {cases.length} Unseen Test Cases Live in Browser
           </h3>
-          <p className="mt-2 text-[14px] leading-relaxed text-muted">
-            These patient biopsies were never shown to the models during training. Pressing the button runs all
-            five models client-side across the entire test set to verify real accuracy live in your browser.
-          </p>
         </div>
 
         <button
-          className="btn-primary shrink-0 text-sm shadow-md"
+          className="btn-primary shrink-0 text-xs px-4 py-2.5 shadow-md"
           onClick={start}
           disabled={state.status === 'running'}
         >
           {state.status === 'done' ? (
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="h-3.5 w-3.5" />
           ) : (
-            <Play className={`h-4 w-4 ${state.status === 'running' ? 'animate-spin' : ''}`} />
+            <Play className={`h-3.5 w-3.5 ${state.status === 'running' ? 'animate-spin' : ''}`} />
           )}
           <span>
             {state.status === 'idle'
-              ? 'Run Live Test'
+              ? 'Run 139-Case Live Test'
               : state.status === 'running'
               ? 'Classifying Patients…'
               : 'Re-run Evaluation'}
@@ -106,14 +102,14 @@ function TestRunner() {
       </div>
 
       {/* Progress Bar */}
-      <div className="mt-6">
-        <div className="flex justify-between items-center text-xs font-mono text-muted mb-1.5">
+      <div className="mt-3.5">
+        <div className="flex justify-between items-center text-[11px] font-mono text-muted mb-1">
           <span>
             Progress: <strong className="text-ink">{state.done}</strong> / {cases.length} patients classified
           </span>
           <span>{Math.round(progress * 100)}%</span>
         </div>
-        <div className="h-2 overflow-hidden rounded-full bg-soft border border-line/40">
+        <div className="h-1.5 overflow-hidden rounded-full bg-soft border border-line/40">
           <motion.div
             className="h-full bg-accent rounded-full transition-all duration-75"
             style={{ width: `${progress * 100}%` }}
@@ -122,7 +118,7 @@ function TestRunner() {
       </div>
 
       {/* 5 Model Results Grid */}
-      <div className="mt-6 grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="mt-4 grid gap-2.5 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
         {MODEL_ORDER.map((m) => {
           const c = state.correct[m] || 0;
           const acc = state.done ? c / state.done : 0;
@@ -134,26 +130,26 @@ function TestRunner() {
               key={m}
               whileHover={{ y: -3, scale: 1.015 }}
               transition={{ type: 'spring', stiffness: 400, damping: 24 }}
-              className={`rounded-xl p-4 transition-all border ${
+              className={`rounded-xl p-3 transition-all border ${
                 isPrimary
                   ? 'bg-card border-accent/40 shadow-sm ring-1 ring-accent/20'
                   : 'bg-soft/70 border-line/60 hover:bg-card'
               }`}
             >
-              <div className="flex items-center justify-between gap-1 mb-1">
+              <div className="flex items-center justify-between gap-1 mb-0.5">
                 <span className="text-xs font-semibold text-ink truncate" title={m}>
                   {MODEL_INFO[m].fullName}
                 </span>
                 {isPrimary && (
-                  <span className="shrink-0 text-[10px] font-mono font-bold bg-accent/15 text-accent px-1.5 py-0.2 rounded-full">
+                  <span className="shrink-0 text-[9.5px] font-mono font-bold bg-accent/15 text-accent px-1.5 py-0.1 rounded-full">
                     Top
                   </span>
                 )}
               </div>
-              <div className="mt-1 font-display text-3xl font-bold leading-none text-ink tabular-nums">
+              <div className="mt-1 font-display text-2xl font-bold leading-none text-ink tabular-nums">
                 {state.done ? `${(acc * 100).toFixed(1)}%` : '—'}
               </div>
-              <div className="mt-2 flex items-center justify-between text-[11px] font-mono text-muted">
+              <div className="mt-1.5 flex items-center justify-between text-[10.5px] font-mono text-muted">
                 <span>{state.done ? `${c}/${state.done} correct` : 'Awaiting run'}</span>
                 {state.done > 0 && (
                   <span className={missed === 0 ? 'text-benign font-medium' : 'text-muted'}>
@@ -172,7 +168,7 @@ function TestRunner() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="mt-5 rounded-xl bg-benign/10 border border-benign/20 p-3.5 text-xs text-ink flex items-start gap-2.5"
+            className="mt-3.5 rounded-xl bg-benign/10 border border-benign/20 p-3 text-xs text-ink flex items-start gap-2"
           >
             <CheckCircle2 className="h-4 w-4 shrink-0 text-benign mt-0.5" />
             <div className="leading-relaxed">
@@ -226,22 +222,21 @@ export default function TestCases({ onTry }) {
   ];
 
   return (
-    <section id="cases" className="mx-auto max-w-6xl px-5 py-20">
+    <section id="cases" className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8 py-12 border-t border-line/60">
       <SectionHeader
         index="02"
         eyebrow="Held-Out Patient Validation"
         title={<>Inspect real patient cases <em className="text-accent">one by one.</em></>}
       >
         Explore all {BUNDLE.counts.test} unseen patients from the test set. Compare what each of the five
-        algorithms predicted against the confirmed histological pathology. Click any case to load its feature
-        profile into the interactive classifier.
+        algorithms predicted against the confirmed histological pathology.
       </SectionHeader>
 
       <Reveal>
         <TestRunner />
       </Reveal>
 
-      <Reveal className="card mt-8 overflow-hidden shadow-card">
+      <Reveal className="card mt-5 overflow-hidden shadow-card">
         {/* Controls: Filter chips and Search bar */}
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 border-b border-line p-4 sm:p-5 bg-card/60">
           <div className="flex flex-wrap gap-1.5 rounded-2xl bg-soft/70 p-1 border border-line/60">
@@ -336,15 +331,15 @@ export default function TestCases({ onTry }) {
                     transition={{ duration: 0.25, ease: EASE, delay: i * 0.02 }}
                     className="group border-b border-line/60 last:border-0 transition-colors hover:bg-soft/50"
                   >
-                    <td className="px-5 py-3.5 font-mono font-medium text-ink">#{c.id}</td>
-                    <td className="px-5 py-3.5">
+                    <td className="px-5 py-2.5 font-mono font-medium text-ink">#{c.id}</td>
+                    <td className="px-5 py-2.5">
                       <Verdict pred={c.y} showDetails />
                     </td>
                     {MODEL_ORDER.map((m) => {
                       const p = c.pred[m];
                       const wrong = p !== c.y;
                       return (
-                        <td key={m} className="px-2 py-3.5 text-center">
+                        <td key={m} className="px-2 py-2.5 text-center">
                           <span
                             title={`${MODEL_INFO[m].fullName}: ${p ? 'Malignant' : 'Benign'}${
                               wrong ? ' (Disagreed with actual diagnosis)' : ' (Correct)'
@@ -356,10 +351,10 @@ export default function TestCases({ onTry }) {
                         </td>
                       );
                     })}
-                    <td className="px-5 py-3.5 text-right">
+                    <td className="px-5 py-2.5 text-right">
                       <button
                         onClick={() => onTry(c)}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-soft px-3 py-1.5 text-xs font-semibold text-ink transition-all hover:bg-ink hover:text-paper active:scale-95"
+                        className="inline-flex items-center gap-1.5 rounded-full bg-soft px-3 py-1 text-xs font-semibold text-ink transition-all hover:bg-ink hover:text-paper active:scale-95"
                       >
                         <span>Load in Classifier</span>
                         <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />

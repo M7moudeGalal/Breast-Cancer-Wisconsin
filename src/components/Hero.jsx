@@ -80,7 +80,7 @@ function MicroscopeField() {
       onMouseMove={handleMove}
       onMouseLeave={handleLeave}
       style={{ rotateX, rotateY, transformPerspective: 900 }}
-      className="relative mx-auto aspect-square w-full max-w-[470px] cursor-crosshair select-none"
+      className="relative mx-auto aspect-square w-full max-w-[360px] lg:max-w-[400px] xl:max-w-[425px] cursor-crosshair select-none"
     >
       {/* Subtle ambient glow behind microscope */}
       <div
@@ -286,14 +286,14 @@ export default function Hero({ onOpenGuide }) {
   ];
 
   return (
-    <section id="top" className="relative overflow-hidden pt-6 pb-16 md:pt-12 md:pb-24">
-      <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 md:grid-cols-[1.15fr_1fr] lg:gap-14">
+    <section id="top" className="relative overflow-hidden border-b border-line/60 py-6 md:py-10 lg:min-h-[calc(100vh-57px)] lg:flex lg:items-center">
+      <div className="mx-auto grid w-full max-w-[1320px] items-center gap-8 px-4 sm:px-6 lg:px-8 md:grid-cols-[1.2fr_0.8fr] lg:gap-10">
         <div>
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, ease: EASE }}
-            className="mb-5 inline-flex items-center gap-2 rounded-full border border-line bg-card px-3.5 py-1.5 text-xs font-medium shadow-sm"
+            className="mb-3.5 inline-flex items-center gap-2 rounded-full border border-line bg-card px-3.5 py-1 text-xs font-medium shadow-sm"
           >
             <Activity className="h-3.5 w-3.5 text-accent" />
             <span>Interactive Clinical Decision-Support Simulator</span>
@@ -302,7 +302,7 @@ export default function Hero({ onOpenGuide }) {
             </span>
           </motion.div>
 
-          <h1 className="font-display text-[42px] leading-[1.03] tracking-tight sm:text-6xl lg:text-[72px]">
+          <h1 className="font-display text-[36px] leading-[1.04] tracking-tight sm:text-5xl lg:text-[54px] xl:text-[60px]">
             {HEADLINE.map((w, i) => (
               <span key={i} className="inline-block overflow-hidden pb-1 align-bottom">
                 <motion.span
@@ -322,7 +322,7 @@ export default function Hero({ onOpenGuide }) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.65, ease: EASE, delay: 0.55 }}
-            className="mt-5 max-w-xl text-[16px] sm:text-[17px] leading-relaxed text-muted"
+            className="mt-3.5 max-w-xl text-[15px] sm:text-[16px] leading-relaxed text-muted"
           >
             Explore how five trained machine learning models classify breast biopsy samples. Click any score from
             1 to 10, watch our live 3-step guide, or run all 139 unseen patients right in your browser.
@@ -332,14 +332,14 @@ export default function Hero({ onOpenGuide }) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.65, ease: EASE, delay: 0.7 }}
-            className="mt-7 flex flex-wrap items-center gap-3"
+            className="mt-5 flex flex-wrap items-center gap-2.5"
           >
-            <a href="#try" className="btn-primary group text-[14px]">
+            <a href="#try" className="btn-primary group text-[13.5px] px-4 py-2.5">
               <Sparkles className="h-4 w-4 text-paper/80 transition-transform group-hover:rotate-12" />
               Start Interactive Diagnosis
               <ArrowDown className="h-4 w-4 transition-transform group-hover:translate-y-0.5" />
             </a>
-            <a href="#cases" className="btn-ghost group text-[14px]">
+            <a href="#cases" className="btn-ghost group text-[13.5px] px-4 py-2.5">
               <Play className="h-3.5 w-3.5 text-accent transition-transform group-hover:scale-110" />
               Run 139-Patient Live Test
             </a>
@@ -351,21 +351,21 @@ export default function Hero({ onOpenGuide }) {
             )}
           </motion.div>
 
-          <div className="mt-11 grid grid-cols-2 gap-3.5 pt-4 sm:grid-cols-4">
+          <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {stats.map((s, i) => (
               <motion.div
                 key={s.label}
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
-                whileHover={{ y: -4, scale: 1.02 }}
+                whileHover={{ y: -3, scale: 1.02 }}
                 transition={{ duration: 0.45, ease: EASE, delay: 0.8 + i * 0.07 }}
-                className="card p-4 hover:border-ink/30 hover:shadow-lift"
+                className="card p-3.5 hover:border-ink/30 hover:shadow-lift"
               >
-                <div className="font-display text-3xl sm:text-4xl leading-none text-ink">
+                <div className="font-display text-2xl sm:text-3xl leading-none text-ink font-semibold">
                   <Counter value={s.value} decimals={s.decimals} suffix={s.suffix} duration={1.4} />
                 </div>
-                <div className="mt-2 text-xs font-semibold text-ink">{s.label}</div>
-                <div className="mt-0.5 text-[11px] text-muted">{s.hint}</div>
+                <div className="mt-1.5 text-[11.5px] font-semibold text-ink leading-tight">{s.label}</div>
+                <div className="mt-0.5 text-[10.5px] text-muted leading-tight">{s.hint}</div>
               </motion.div>
             ))}
           </div>

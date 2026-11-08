@@ -49,18 +49,18 @@ export function Counter({ value, decimals = 0, suffix = '', prefix = '', duratio
 
 export function SectionHeader({ index, eyebrow, title, children }) {
   return (
-    <div className="mb-10 grid gap-6 md:grid-cols-[1.1fr_1.1fr] md:items-end">
+    <div className="mb-6 grid gap-4 md:grid-cols-[1.15fr_0.85fr] md:items-end border-b border-line/70 pb-4">
       <Reveal>
-        <div className="eyebrow mb-2.5 flex items-center gap-2.5">
+        <div className="eyebrow mb-1.5 flex items-center gap-2">
           <span className="font-mono font-semibold text-accent">{index}</span>
-          <span className="h-px w-6 bg-line" />
+          <span className="h-px w-5 bg-line" />
           <span className="text-muted">{eyebrow}</span>
         </div>
-        <h2 className="font-display text-3xl leading-[1.1] tracking-tight sm:text-4xl md:text-5xl">{title}</h2>
+        <h2 className="font-display text-2xl leading-[1.12] tracking-tight sm:text-3xl lg:text-[38px]">{title}</h2>
       </Reveal>
       {children && (
-        <Reveal delay={0.1}>
-          <div className="max-w-xl text-[14.5px] leading-relaxed text-muted md:justify-self-end">{children}</div>
+        <Reveal delay={0.08}>
+          <div className="max-w-xl text-[13.5px] leading-relaxed text-muted md:justify-self-end">{children}</div>
         </Reveal>
       )}
     </div>

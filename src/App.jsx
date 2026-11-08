@@ -84,7 +84,7 @@ export default function App() {
 
       {/* Sticky Editorial Header */}
       <header className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3">
+        <div className="mx-auto flex max-w-[1320px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-2.5">
           <a href="#top" className="flex items-center gap-2.5 group">
             <span className="relative flex h-7 w-7 items-center justify-center rounded-full border border-ink/40 bg-card shadow-sm transition-transform group-hover:scale-105">
               <span className="h-2.5 w-2.5 rounded-full bg-malignant" />
@@ -206,7 +206,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="border-t border-line bg-card/50">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-10 text-xs text-muted">
+        <div className="mx-auto flex max-w-[1320px] flex-wrap items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-8 text-xs text-muted">
           <div className="space-y-1">
             <div className="font-display text-base text-ink font-semibold">
               Wisconsin Breast Cancer Cytology Classification

@@ -123,7 +123,7 @@ function ConfusionMatrix({ m }) {
   ];
 
   return (
-    <div className="card p-6 md:p-7 flex flex-col justify-between">
+    <div className="card h-full p-5 sm:p-6 flex flex-col justify-between">
       <div>
         <div className="flex items-center justify-between mb-1">
           <span className="eyebrow">Diagnostic Breakdown</span>
@@ -221,7 +221,7 @@ function RocChart({ selected }) {
   const currentAuc = BUNDLE.test_metrics[selected].auc;
 
   return (
-    <div className="card p-6 md:p-7 flex flex-col justify-between">
+    <div className="card h-full p-5 sm:p-6 flex flex-col justify-between">
       <div>
         <div className="flex items-center justify-between mb-1">
           <span className="eyebrow">Sensitivity vs. Specificity</span>
@@ -330,7 +330,7 @@ function Importance() {
   const rows = FEATURES.map((f, i) => ({ label: f.label, v: BUNDLE.importance[i] })).sort((a, b) => b.v - a.v);
   const max = rows[0].v;
   return (
-    <div className="card p-6 md:p-7">
+    <div className="card h-full p-5 sm:p-6 flex flex-col justify-between">
       <div className="flex items-center justify-between mb-1">
         <span className="eyebrow">Feature Contribution</span>
         <span className="text-[11px] font-mono text-muted">Random Forest Gini Importance</span>
@@ -382,7 +382,7 @@ function CompareTable({ selected, onSelect }) {
   );
 
   return (
-    <div className="card overflow-hidden">
+    <div className="card h-full flex flex-col justify-between overflow-hidden">
       <div className="p-6 pb-4">
         <div className="flex items-center justify-between mb-1">
           <span className="eyebrow">Comprehensive Benchmark</span>
@@ -478,8 +478,8 @@ export default function Performance() {
   const cv = BUNDLE.cv_metrics[model];
 
   return (
-    <section id="performance" className="border-y border-line bg-card/40 py-20">
-      <div className="mx-auto max-w-6xl px-5">
+    <section id="performance" className="border-y border-line bg-card/40 py-12">
+      <div className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
         <SectionHeader
           index="03"
           eyebrow="Evaluation &amp; Benchmarks"
@@ -490,7 +490,7 @@ export default function Performance() {
         </SectionHeader>
 
         {/* Model Selection Tabs */}
-        <Reveal className="mb-6">
+        <Reveal className="mb-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <ModelTabs value={model} onChange={setModel} />
             <div className="text-xs text-muted font-mono">
@@ -500,7 +500,7 @@ export default function Performance() {
         </Reveal>
 
         {/* 5 Metric Cards */}
-        <Reveal className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+        <Reveal className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {METRICS.map((item) => {
             const Icon = item.icon;
             return (
@@ -508,23 +508,23 @@ export default function Performance() {
                 key={item.key}
                 whileHover={{ y: -4, scale: 1.02 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 24 }}
-                className="card p-5 hover:shadow-lift transition-all"
+                className="card p-4 hover:shadow-lift transition-all"
               >
-                <div className="flex items-center justify-between text-muted mb-2">
+                <div className="flex items-center justify-between text-muted mb-1.5">
                   <span className="text-xs font-semibold text-ink">{item.name}</span>
                   <Icon className="h-4 w-4 text-accent/80" />
                 </div>
-                <div className="mt-1 font-display text-4xl font-bold leading-none text-ink">
+                <div className="mt-0.5 font-display text-3xl sm:text-4xl font-bold leading-none text-ink">
                   {item.key === 'auc' ? (
                     <Counter value={t[item.key]} decimals={4} duration={0.8} />
                   ) : (
                     <Counter value={t[item.key] * 100} decimals={1} suffix="%" duration={0.8} />
                   )}
                 </div>
-                <div className="mt-2.5 text-[11px] font-medium text-ink/90 leading-tight">
+                <div className="mt-2 text-[11px] font-medium text-ink/90 leading-tight">
                   {item.plainQuestion}
                 </div>
-                <div className="mt-1 text-[10px] text-muted leading-tight">{item.hint}</div>
+                <div className="mt-0.5 text-[10px] text-muted leading-tight">{item.hint}</div>
               </motion.div>
             );
           })}
@@ -537,7 +537,7 @@ export default function Performance() {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            className="mt-4 rounded-xl bg-soft/50 border border-line p-3 font-mono text-[11px] text-muted flex flex-wrap items-center justify-between gap-2"
+            className="mt-3.5 rounded-xl bg-soft/50 border border-line p-2.5 font-mono text-[11px] text-muted flex flex-wrap items-center justify-between gap-2"
           >
             <span>
               <strong>5-Fold Cross-Validation on Train Set:</strong> Recall {(cv.recall * 100).toFixed(1)}% ±{' '}
@@ -550,21 +550,21 @@ export default function Performance() {
         </AnimatePresence>
 
         {/* Confusion Matrix & ROC Curve */}
-        <div className="mt-8 grid gap-8 lg:grid-cols-2">
-          <Reveal>
+        <div className="mt-5 grid items-stretch gap-5 lg:grid-cols-2">
+          <Reveal className="h-full">
             <ConfusionMatrix m={t} />
           </Reveal>
-          <Reveal delay={0.08}>
+          <Reveal delay={0.08} className="h-full">
             <RocChart selected={model} />
           </Reveal>
         </div>
 
         {/* Side-by-side table & Feature Importance */}
-        <div className="mt-8 grid gap-8 lg:grid-cols-[1.35fr_1fr] min-w-0">
-          <Reveal className="min-w-0">
+        <div className="mt-5 grid items-stretch gap-5 lg:grid-cols-[1.35fr_1fr] min-w-0">
+          <Reveal className="min-w-0 h-full">
             <CompareTable selected={model} onSelect={setModel} />
           </Reveal>
-          <Reveal delay={0.08} className="min-w-0">
+          <Reveal delay={0.08} className="min-w-0 h-full">
             <Importance />
           </Reveal>
         </div>
