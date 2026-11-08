@@ -240,7 +240,7 @@ function MicroscopeField() {
 const HEADLINE_L1 = ['Reading', 'a', 'biopsy,'];
 const HEADLINE_L2 = ['one', 'cell', 'feature', 'at', 'a', 'time.'];
 
-export default function Hero({ onOpenGuide }) {
+export default function Hero({ onOpenGuide, onGoToTry, onGoToCases }) {
   const m = BUNDLE.test_metrics[PRIMARY];
   const c = BUNDLE.counts;
   const stats = [
@@ -346,15 +346,23 @@ export default function Hero({ onOpenGuide }) {
             transition={{ duration: 0.65, ease: EASE, delay: 0.6 }}
             className="mt-6 flex flex-wrap items-center gap-3"
           >
-            <a href="#try" className="btn-primary group text-[13.5px] px-4 py-2.5 shadow-sm">
+            <button
+              type="button"
+              onClick={onGoToTry}
+              className="btn-primary group text-[13.5px] px-4 py-2.5 shadow-sm"
+            >
               <Sparkles className="h-4 w-4 text-paper/80 transition-transform group-hover:rotate-12" />
               Start Interactive Diagnosis
               <ArrowDown className="h-4 w-4 transition-transform group-hover:translate-y-0.5" />
-            </a>
-            <a href="#cases" className="btn-ghost group text-[13.5px] px-4 py-2.5">
+            </button>
+            <button
+              type="button"
+              onClick={onGoToCases}
+              className="btn-ghost group text-[13.5px] px-4 py-2.5"
+            >
               <Play className="h-3.5 w-3.5 text-accent transition-transform group-hover:scale-110" />
               Run 139-Patient Live Test
-            </a>
+            </button>
             {onOpenGuide && (
               <button onClick={onOpenGuide} className="chip py-2.5 text-[13px]">
                 <BookOpen className="h-3.5 w-3.5 text-muted" />

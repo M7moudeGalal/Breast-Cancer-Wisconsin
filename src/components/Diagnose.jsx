@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { BUNDLE, FEATURES, MODEL_ORDER, PRIMARY, predict } from '../lib/engine.js';
 import { Counter, EASE, Reveal, SectionHeader, pct } from './ui.jsx';
+import CytologyRadar from './CytologyRadar.jsx';
 
 const SHORT = {
   'ANN (MLP)': 'Neural Network (ANN)',
@@ -767,9 +768,10 @@ export default function Diagnose({ values, setValues, loadedCase, loadCase }) {
         </Reveal>
       </div>
 
-      {/* Compact 3x3 Feature Profile Benchmark below */}
-      <Reveal className="mt-5">
+      {/* 2-Column Benchmark & Multidimensional Radar Signature */}
+      <Reveal className="mt-5 grid grid-cols-1 lg:grid-cols-[1.3fr_0.9fr] gap-5 items-stretch">
         <Profile values={result.filled} />
+        <CytologyRadar values={result.filled} mal={result.primary.pred === 1} />
       </Reveal>
     </section>
   );

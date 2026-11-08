@@ -1,19 +1,34 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
-import { BookOpen, Moon, Sun, ArrowUp, Menu, X, CheckCircle2, AlertOctagon, Dna } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  BookOpen,
+  Moon,
+  Sun,
+  Menu,
+  X,
+  CheckCircle2,
+  AlertOctagon,
+  Dna,
+  Sliders,
+  FlaskConical,
+  Activity,
+  Image as ImageIcon,
+  ArrowUp,
+} from 'lucide-react';
 import { BUNDLE, valuesFromCase } from './lib/engine.js';
-import Hero from './components/Hero.jsx';
+import Overview from './components/Overview.jsx';
 import Diagnose from './components/Diagnose.jsx';
 import TestCases from './components/TestCases.jsx';
 import Performance from './components/Performance.jsx';
 import Figures from './components/Figures.jsx';
 import Guide from './components/Guide.jsx';
 
-const NAV = [
-  ['#try', 'Try Classifier'],
-  ['#cases', 'Test Cases'],
-  ['#performance', 'Model Results'],
-  ['#figures', 'Research Figures'],
+const TABS = [
+  { id: 'overview', label: 'Overview & Lens', icon: Dna },
+  { id: 'try', label: 'Try Classifier', icon: Sliders },
+  { id: 'cases', label: '139 Test Cases', icon: FlaskConical },
+  { id: 'performance', label: 'Model Benchmarks', icon: Activity },
+  { id: 'figures', label: 'Research Atlas', icon: ImageIcon },
 ];
 
 export default function App() {
@@ -21,13 +36,17 @@ export default function App() {
   const [values, setValuesState] = useState(() => valuesFromCase(BUNDLE.cases[0]));
   const [loadedCase, setLoadedCase] = useState(() => BUNDLE.cases[0]);
   const [guideOpen, setGuideOpen] = useState(false);
-  const [activeNav, setActiveNav] = useState('#try');
+  const [activeTab, setActiveTab] = useState(() => {
+    try {
+      const h = window.location.hash.replace('#', '');
+      return ['overview', 'try', 'cases', 'performance', 'figures'].includes(h) ? h : 'overview';
+    } catch {
+      return 'overview';
+    }
+  });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const toastTimer = useRef(null);
-
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 140, damping: 28, mass: 0.2 });
 
   useEffect(() => {
     const root = document.documentElement;
@@ -41,21 +60,10 @@ export default function App() {
   }, [dark]);
 
   useEffect(() => {
-    const ids = ['try', 'cases', 'performance', 'figures'];
-    const obs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) setActiveNav(`#${entry.target.id}`);
-        });
-      },
-      { rootMargin: '-30% 0px -50% 0px' }
-    );
-    ids.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) obs.observe(el);
-    });
-    return () => obs.disconnect();
-  }, []);
+    try {
+      window.location.hash = activeTab;
+    } catch {}
+  }, [activeTab]);
 
   const setValues = (nextVals, c = null) => {
     setValuesState(nextVals);
@@ -65,27 +73,33 @@ export default function App() {
   const loadCase = (c, shouldScroll = true) => {
     setValuesState(valuesFromCase(c));
     setLoadedCase(c);
-    if (shouldScroll) {
-      const el = document.getElementById('try');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-      if (toastTimer.current) clearTimeout(toastTimer.current);
-      setToast(c);
-      toastTimer.current = setTimeout(() => setToast(null), 3200);
-    }
+    setActiveTab('try');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast(c);
+    toastTimer.current = setTimeout(() => setToast(null), 3500);
   };
 
   return (
-    <div className="min-h-screen bg-paper text-ink transition-colors duration-300 overflow-x-hidden">
-      {/* Top scroll progress bar */}
-      <motion.div
-        style={{ scaleX }}
-        className="fixed inset-x-0 top-0 z-50 h-[3px] origin-left bg-accent"
-      />
+    <div className="min-h-screen bg-paper text-ink transition-colors duration-300 overflow-x-hidden relative flex flex-col justify-between">
+      {/* Ambient glowing radial orbs & tech grid to eliminate empty dark void */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <div className="absolute -top-36 -left-36 h-[520px] w-[520px] rounded-full bg-accent/8 blur-[120px] dark:bg-accent/15" />
+        <div className="absolute top-1/3 -right-40 h-[480px] w-[480px] rounded-full bg-benign/6 blur-[130px] dark:bg-benign/12" />
+        <div className="absolute -bottom-40 left-1/4 h-[480px] w-[480px] rounded-full bg-malignant/5 blur-[140px] dark:bg-malignant/10" />
+        <div className="absolute inset-0 bg-tech-grid opacity-35 dark:opacity-20" />
+      </div>
 
-      {/* Sticky Editorial Header */}
+      {/* Sticky Editorial Header with Interactive Tab Navigation */}
       <header className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1320px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-2.5">
-          <a href="#top" className="flex items-center gap-2.5 group">
+          <button
+            onClick={() => {
+              setActiveTab('overview');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="flex items-center gap-2.5 group text-left cursor-pointer"
+          >
             <span className="relative flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-accent/25 via-ink to-ink text-paper shadow-md transition-all duration-300 group-hover:scale-105 group-hover:shadow-lift ring-1 ring-ink/20">
               <Dna className="h-4 w-4 text-accent transition-transform duration-500 group-hover:rotate-180" />
             </span>
@@ -97,30 +111,34 @@ export default function App() {
                 Clinical Diagnostic Suite
               </span>
             </div>
-          </a>
+          </button>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden items-center gap-1 rounded-full border border-line bg-card p-1 md:flex shadow-sm">
-            {NAV.map(([href, label]) => {
-              const active = activeNav === href;
+          {/* Desktop Navigation Tabs */}
+          <nav className="hidden items-center gap-1 rounded-full border border-line bg-card p-1 lg:flex shadow-sm">
+            {TABS.map((t) => {
+              const active = activeTab === t.id;
+              const Icon = t.icon;
               return (
-                <a
-                  key={href}
-                  href={href}
-                  onClick={() => setActiveNav(href)}
-                  className={`relative rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
-                    active ? 'text-paper' : 'text-muted hover:text-ink'
+                <button
+                  key={t.id}
+                  onClick={() => {
+                    setActiveTab(t.id);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className={`relative flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] font-medium transition-colors cursor-pointer ${
+                    active ? 'text-paper font-semibold' : 'text-muted hover:text-ink'
                   }`}
                 >
                   {active && (
                     <motion.span
-                      layoutId="top-nav-pill"
+                      layoutId="top-tab-pill"
                       className="absolute inset-0 rounded-full bg-ink"
                       transition={{ type: 'spring', stiffness: 460, damping: 36 }}
                     />
                   )}
-                  <span className="relative z-10">{label}</span>
-                </a>
+                  <Icon className={`relative z-10 h-3.5 w-3.5 ${active ? 'text-accent' : 'opacity-70'}`} />
+                  <span className="relative z-10">{t.label}</span>
+                </button>
               );
             })}
           </nav>
@@ -138,13 +156,13 @@ export default function App() {
             <button
               onClick={() => setDark((d) => !d)}
               aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-line bg-card transition hover:border-ink/40"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-line bg-card transition hover:border-ink/40 cursor-pointer"
             >
               {dark ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-ink" />}
             </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-line bg-card md:hidden"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-line bg-card lg:hidden"
               aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
@@ -159,24 +177,29 @@ export default function App() {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden border-t border-line bg-card px-5 py-3 md:hidden shadow-lg"
+              className="overflow-hidden border-t border-line bg-card px-5 py-3 lg:hidden shadow-lg"
             >
               <div className="flex flex-col gap-1 pb-2">
-                {NAV.map(([href, label]) => (
-                  <a
-                    key={href}
-                    href={href}
-                    onClick={() => {
-                      setActiveNav(href);
-                      setMobileMenuOpen(false);
-                    }}
-                    className={`rounded-lg px-3 py-2 text-sm font-medium ${
-                      activeNav === href ? 'bg-soft text-ink font-semibold' : 'text-muted hover:text-ink'
-                    }`}
-                  >
-                    {label}
-                  </a>
-                ))}
+                {TABS.map((t) => {
+                  const active = activeTab === t.id;
+                  const Icon = t.icon;
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => {
+                        setActiveTab(t.id);
+                        setMobileMenuOpen(false);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-left ${
+                        active ? 'bg-soft text-ink font-semibold' : 'text-muted hover:text-ink'
+                      }`}
+                    >
+                      <Icon className="h-4 w-4 text-accent" />
+                      <span>{t.label}</span>
+                    </button>
+                  );
+                })}
               </div>
               <div className="flex items-center gap-2 border-t border-line pt-3">
                 <button
@@ -195,18 +218,42 @@ export default function App() {
         </AnimatePresence>
       </header>
 
-      {/* Main Single Application Flow */}
-      <main>
-        <Hero onOpenGuide={() => setGuideOpen(true)} />
-        <Diagnose values={values} setValues={setValues} loadedCase={loadedCase} loadCase={loadCase} />
-        <TestCases onTry={loadCase} />
-        <Performance />
-        <Figures />
+      {/* Main Tabbed Application View */}
+      <main className="relative z-10 flex-1">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {activeTab === 'overview' && (
+              <Overview
+                onOpenGuide={() => setGuideOpen(true)}
+                onGoToTry={() => {
+                  setActiveTab('try');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                onGoToCases={() => {
+                  setActiveTab('cases');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+              />
+            )}
+            {activeTab === 'try' && (
+              <Diagnose values={values} setValues={setValues} loadedCase={loadedCase} loadCase={loadCase} />
+            )}
+            {activeTab === 'cases' && <TestCases onTry={loadCase} />}
+            {activeTab === 'performance' && <Performance />}
+            {activeTab === 'figures' && <Figures />}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-line bg-card/50">
-        <div className="mx-auto flex max-w-[1320px] flex-wrap items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-8 text-xs text-muted">
+      <footer className="relative z-10 border-t border-line bg-card/60 mt-12">
+        <div className="mx-auto flex max-w-[1320px] flex-wrap items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-7 text-xs text-muted">
           <div className="space-y-1">
             <div className="font-display text-base text-ink font-semibold">
               Cytology.AI · Clinical Diagnostic Suite
@@ -215,9 +262,17 @@ export default function App() {
               {BUNDLE.counts.total} samples · 5 trained scikit-learn models running client-side · Mayer Romany
             </p>
           </div>
-          <a href="#top" className="chip">
-            Back to top <ArrowUp className="h-3.5 w-3.5" />
-          </a>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 rounded-full bg-soft px-3 py-1 font-mono text-[11px] text-muted">
+              Active Tab: <strong className="text-ink capitalize">{activeTab}</strong>
+            </div>
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="chip cursor-pointer"
+            >
+              Back to top <ArrowUp className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
       </footer>
 
