@@ -130,7 +130,7 @@ function TestRunner() {
               key={m}
               whileHover={{ y: -3, scale: 1.015 }}
               transition={{ type: 'spring', stiffness: 400, damping: 24 }}
-              className={`rounded-xl p-3 transition-all border ${
+              className={`rounded-xl p-3 min-h-[92px] flex flex-col justify-between transition-all border ${
                 isPrimary
                   ? 'bg-card border-accent/40 shadow-sm ring-1 ring-accent/20'
                   : 'bg-soft/70 border-line/60 hover:bg-card'

@@ -82,17 +82,6 @@ function MicroscopeField() {
       style={{ rotateX, rotateY, transformPerspective: 900 }}
       className="relative mx-auto aspect-square w-full max-w-[360px] lg:max-w-[400px] xl:max-w-[425px] cursor-crosshair select-none"
     >
-// Subtle ambient glow behind microscope
-      <div
-        className="pointer-events-none absolute inset-8 rounded-full opacity-40 blur-3xl transition-colors duration-500"
-        style={{
-          background:
-            hoveredCell?.malignant
-              ? 'radial-gradient(circle, rgb(var(--malignant) / 0.45), transparent 70%)'
-              : 'radial-gradient(circle, rgb(var(--accent) / 0.35), rgb(var(--benign) / 0.25), transparent 70%)',
-        }}
-      />
-
       <svg viewBox="0 0 400 400" className="relative z-10 h-full w-full drop-shadow-sm" aria-hidden="true">
         <defs>
           <clipPath id="field">
@@ -248,64 +237,104 @@ function MicroscopeField() {
   );
 }
 
-const HEADLINE = ['Reading', 'a', 'biopsy,', 'one', 'cell', 'feature', 'at', 'a', 'time.'];
+const HEADLINE_L1 = ['Reading', 'a', 'biopsy,'];
+const HEADLINE_L2 = ['one', 'cell', 'feature', 'at', 'a', 'time.'];
 
 export default function Hero({ onOpenGuide }) {
   const m = BUNDLE.test_metrics[PRIMARY];
   const c = BUNDLE.counts;
   const stats = [
     { value: c.total, decimals: 0, suffix: '', label: 'Patient samples', hint: 'Wisconsin FNA dataset' },
-    { value: m.accuracy * 100, decimals: 1, suffix: '%', label: 'Unseen case accuracy', hint: 'Held-out test set' },
+    { value: m.accuracy * 100, decimals: 1, suffix: '%', label: 'Unseen accuracy', hint: 'Held-out test set' },
     { value: m.tp, decimals: 0, suffix: ` / ${m.tp + m.fn}`, label: 'Cancers caught', hint: '100% test recall' },
-    { value: 5, decimals: 0, suffix: '', label: 'AI models compared', hint: 'Scikit-learn in-browser' },
+    { value: 5, decimals: 0, suffix: '', label: 'AI models', hint: 'Client-side inference' },
   ];
 
   return (
-    <section id="top" className="relative overflow-hidden border-b border-line/60 py-6 md:py-10 lg:min-h-[calc(100vh-57px)] lg:flex lg:items-center">
-      <div className="mx-auto grid w-full max-w-[1320px] items-center gap-8 px-4 sm:px-6 lg:px-8 md:grid-cols-[1.2fr_0.8fr] lg:gap-10">
-        <div>
-          <h1 className="font-display text-[38px] leading-[1.08] tracking-tight sm:text-5xl lg:text-[56px] xl:text-[62px]">
-            {HEADLINE.map((w, i) => (
-              <span key={i} className="inline-block overflow-visible pb-1 align-bottom">
-                <motion.span
-                  className={`inline-block ${
-                    w === 'cell'
-                      ? 'italic text-accent underline decoration-accent/40 decoration-wavy underline-offset-4'
-                      : ''
-                  }`}
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{
-                    opacity: 1,
-                    y: [0, -7, 0],
-                  }}
-                  transition={{
-                    opacity: { duration: 0.6, delay: 0.05 + i * 0.04 },
-                    y: {
-                      duration: 3.2,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                      delay: i * 0.22,
-                    },
-                  }}
-                  whileHover={{
-                    scale: 1.18,
-                    y: -10,
-                    rotate: i % 2 === 0 ? 3 : -3,
-                    transition: { type: 'spring', stiffness: 450, damping: 14 },
-                  }}
-                >
-                  {w}
-                </motion.span>
-                {i < HEADLINE.length - 1 && '\u00A0'}
-              </span>
-            ))}
+    <section id="top" className="relative overflow-hidden border-b border-line/60 py-8 md:py-12 lg:min-h-[calc(100vh-62px)] lg:flex lg:items-center">
+      <div className="mx-auto grid w-full max-w-[1320px] items-center gap-8 px-4 sm:px-6 lg:px-8 md:grid-cols-[1.15fr_0.85fr] lg:gap-12">
+        <div className="flex flex-col justify-center">
+          <h1 className="font-display text-[38px] leading-[1.1] tracking-tight sm:text-5xl lg:text-[54px] xl:text-[58px]">
+            <span className="block">
+              {HEADLINE_L1.map((w, i) => (
+                <span key={i} className="inline-block pb-1 align-bottom">
+                  <motion.span
+                    className="inline-block"
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{
+                      opacity: 1,
+                      y: [0, -5, 0],
+                    }}
+                    transition={{
+                      opacity: { duration: 0.6, delay: 0.05 + i * 0.04 },
+                      y: {
+                        duration: 3.2,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                        delay: i * 0.22,
+                      },
+                    }}
+                    whileHover={{
+                      scale: 1.15,
+                      y: -8,
+                      rotate: i % 2 === 0 ? 3 : -3,
+                      transition: { type: 'spring', stiffness: 450, damping: 14 },
+                    }}
+                  >
+                    {w}
+                  </motion.span>
+                  {i < HEADLINE_L1.length - 1 && '\u00A0'}
+                </span>
+              ))}
+            </span>
+
+            <span className="block mt-1">
+              {HEADLINE_L2.map((w, i) => {
+                const totalIdx = HEADLINE_L1.length + i;
+                const isCell = w === 'cell';
+                return (
+                  <span key={w + i} className="inline-block pb-1 align-bottom">
+                    <motion.span
+                      className={`inline-block ${
+                        isCell
+                          ? 'italic text-accent underline decoration-accent/40 decoration-wavy underline-offset-4'
+                          : ''
+                      }`}
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{
+                        opacity: 1,
+                        y: [0, -5, 0],
+                      }}
+                      transition={{
+                        opacity: { duration: 0.6, delay: 0.05 + totalIdx * 0.04 },
+                        y: {
+                          duration: 3.2,
+                          repeat: Infinity,
+                          ease: 'easeInOut',
+                          delay: totalIdx * 0.22,
+                        },
+                      }}
+                      whileHover={{
+                        scale: 1.15,
+                        y: -8,
+                        rotate: totalIdx % 2 === 0 ? 3 : -3,
+                        transition: { type: 'spring', stiffness: 450, damping: 14 },
+                      }}
+                    >
+                      {w}
+                    </motion.span>
+                    {i < HEADLINE_L2.length - 1 && '\u00A0'}
+                  </span>
+                );
+              })}
+            </span>
           </h1>
 
           <motion.p
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, ease: EASE, delay: 0.55 }}
-            className="mt-3.5 max-w-xl text-[15px] sm:text-[16px] leading-relaxed text-muted"
+            transition={{ duration: 0.65, ease: EASE, delay: 0.45 }}
+            className="mt-4 max-w-xl text-[15px] sm:text-[16px] leading-relaxed text-muted"
           >
             Explore how five trained machine learning models classify breast biopsy samples. Click any score from
             1 to 10, watch our live 3-step guide, or run all 139 unseen patients right in your browser.
@@ -314,10 +343,10 @@ export default function Hero({ onOpenGuide }) {
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, ease: EASE, delay: 0.7 }}
-            className="mt-5 flex flex-wrap items-center gap-2.5"
+            transition={{ duration: 0.65, ease: EASE, delay: 0.6 }}
+            className="mt-6 flex flex-wrap items-center gap-3"
           >
-            <a href="#try" className="btn-primary group text-[13.5px] px-4 py-2.5">
+            <a href="#try" className="btn-primary group text-[13.5px] px-4 py-2.5 shadow-sm">
               <Sparkles className="h-4 w-4 text-paper/80 transition-transform group-hover:rotate-12" />
               Start Interactive Diagnosis
               <ArrowDown className="h-4 w-4 transition-transform group-hover:translate-y-0.5" />
@@ -334,27 +363,31 @@ export default function Hero({ onOpenGuide }) {
             )}
           </motion.div>
 
-          <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {stats.map((s, i) => (
               <motion.div
                 key={s.label}
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 whileHover={{ y: -3, scale: 1.02 }}
-                transition={{ duration: 0.45, ease: EASE, delay: 0.8 + i * 0.07 }}
-                className="card p-3.5 hover:border-ink/30 hover:shadow-lift"
+                transition={{ duration: 0.45, ease: EASE, delay: 0.7 + i * 0.06 }}
+                className="card p-3.5 min-h-[92px] flex flex-col justify-between hover:border-ink/30 hover:shadow-lift transition-all"
               >
                 <div className="font-display text-2xl sm:text-3xl leading-none text-ink font-semibold">
                   <Counter value={s.value} decimals={s.decimals} suffix={s.suffix} duration={1.4} />
                 </div>
-                <div className="mt-1.5 text-[11.5px] font-semibold text-ink leading-tight">{s.label}</div>
-                <div className="mt-0.5 text-[10.5px] text-muted leading-tight">{s.hint}</div>
+                <div>
+                  <div className="text-[12px] font-semibold text-ink leading-tight">{s.label}</div>
+                  <div className="text-[10.5px] text-muted leading-tight mt-0.5">{s.hint}</div>
+                </div>
               </motion.div>
             ))}
           </div>
         </div>
 
-        <MicroscopeField />
+        <div className="flex items-center justify-center">
+          <MicroscopeField />
+        </div>
       </div>
     </section>
   );

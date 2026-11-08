@@ -68,7 +68,7 @@ function CockpitVisuals({ values, p, mal }) {
   return (
     <div className="mt-3.5 grid grid-cols-2 gap-3 rounded-xl border border-line bg-soft/45 p-3">
       {/* Left: Semicircle Probability Gauge */}
-      <div className="flex flex-col items-center justify-between rounded-lg bg-card/85 p-2.5 border border-line/60">
+      <div className="flex flex-col items-center justify-between rounded-lg bg-card/85 p-2.5 border border-line/60 min-h-[148px]">
         <div className="w-full flex items-center justify-between text-[10px] font-mono text-muted">
           <span>Malignancy Risk</span>
           <span>0–100%</span>
@@ -99,7 +99,7 @@ function CockpitVisuals({ values, p, mal }) {
       </div>
 
       {/* Right: Live Simulated Cell Morphology */}
-      <div className="flex flex-col items-center justify-between rounded-lg bg-card/85 p-2.5 border border-line/60">
+      <div className="flex flex-col items-center justify-between rounded-lg bg-card/85 p-2.5 border border-line/60 min-h-[148px]">
         <div className="w-full flex items-center justify-between text-[10px] font-mono text-muted">
           <span className="flex items-center gap-1">
             <Eye className="h-3 w-3 text-accent" /> Cell Sim
@@ -172,7 +172,7 @@ function ScoreCard({ index, feature, value, onChange, allowUnknown }) {
   return (
     <motion.div
       layout
-      className="flex flex-col justify-between rounded-xl border border-line/80 bg-soft/30 p-3 transition-colors hover:border-ink/25 hover:bg-soft/55"
+      className="flex flex-col justify-between rounded-xl border border-line/80 bg-soft/30 p-2.5 min-h-[96px] transition-colors hover:border-ink/25 hover:bg-soft/55"
     >
       <div>
         <div className="flex items-center justify-between gap-1.5">
@@ -735,7 +735,7 @@ export default function Diagnose({ values, setValues, loadedCase, loadCase }) {
             ))}
 
             {/* 10th Card in 2x5 grid: Quick Cytology Guide & Missing Value Info */}
-            <div className="flex flex-col justify-between rounded-xl border border-dashed border-line bg-soft/20 p-3 text-xs">
+            <div className="flex flex-col justify-between rounded-xl border border-dashed border-line bg-soft/20 p-2.5 text-xs min-h-[96px]">
               <div>
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-[10px] uppercase tracking-wider text-accent font-semibold">

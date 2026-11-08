@@ -508,7 +508,7 @@ export default function Performance() {
                 key={item.key}
                 whileHover={{ y: -4, scale: 1.02 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 24 }}
-                className="card p-4 hover:shadow-lift transition-all"
+                className="card p-4 min-h-[132px] flex flex-col justify-between hover:shadow-lift transition-all"
               >
                 <div className="flex items-center justify-between text-muted mb-1.5">
                   <span className="text-xs font-semibold text-ink">{item.name}</span>
