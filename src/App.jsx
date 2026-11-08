@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
-import { BookOpen, Moon, Sun, ArrowUp, Menu, X } from 'lucide-react';
+import { BookOpen, Moon, Sun, ArrowUp, Menu, X, CheckCircle2, AlertOctagon } from 'lucide-react';
 import { BUNDLE, valuesFromCase } from './lib/engine.js';
 import Hero from './components/Hero.jsx';
 import Diagnose from './components/Diagnose.jsx';
@@ -23,6 +23,8 @@ export default function App() {
   const [guideOpen, setGuideOpen] = useState(false);
   const [activeNav, setActiveNav] = useState('#try');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [toast, setToast] = useState(null);
+  const toastTimer = useRef(null);
 
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 140, damping: 28, mass: 0.2 });
@@ -60,11 +62,16 @@ export default function App() {
     setLoadedCase(c);
   };
 
-  const loadCase = (c) => {
+  const loadCase = (c, shouldScroll = true) => {
     setValuesState(valuesFromCase(c));
     setLoadedCase(c);
-    const el = document.getElementById('try');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    if (shouldScroll) {
+      const el = document.getElementById('try');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+      setToast(c);
+      toastTimer.current = setTimeout(() => setToast(null), 3200);
+    }
   };
 
   return (
@@ -216,6 +223,41 @@ export default function App() {
 
       {/* Drawers */}
       <Guide open={guideOpen} onClose={() => setGuideOpen(false)} />
+
+      {/* Live Toast Feedback Pill */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            key={toast.id}
+            initial={{ opacity: 0, y: 24, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 16, scale: 0.95 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 28 }}
+            className="fixed bottom-5 right-5 z-50 flex items-center gap-3 rounded-2xl border border-line bg-card/95 px-4 py-3 shadow-lift backdrop-blur-md"
+          >
+            {toast.y ? (
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-malignant/15 text-malignant">
+                <AlertOctagon className="h-4 w-4" />
+              </span>
+            ) : (
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-benign/15 text-benign">
+                <CheckCircle2 className="h-4 w-4" />
+              </span>
+            )}
+            <div className="text-xs">
+              <div className="font-semibold text-ink">
+                Loaded Patient <span className="font-mono">#{toast.id}</span> into Classifier
+              </div>
+              <div className="text-[11px] text-muted">
+                Confirmed Histology:{' '}
+                <strong className={toast.y ? 'text-malignant' : 'text-benign'}>
+                  {toast.y ? 'Malignant (Cancerous)' : 'Benign (Non-Cancerous)'}
+                </strong>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -198,7 +198,7 @@ function ConfusionMatrix({ m }) {
         <strong className="text-ink">Key takeaway: </strong>
         {m.fn === 0 ? (
           <span className="text-benign font-medium">
-            This model achieved 0 missed cancers out of all 39 cancer patients in the test set.
+            This model achieved 0 missed cancers out of all {BUNDLE.counts.test_malignant} cancer patients in the test set.
           </span>
         ) : (
           <span className="text-malignant font-medium">
@@ -504,7 +504,12 @@ export default function Performance() {
           {METRICS.map((item) => {
             const Icon = item.icon;
             return (
-              <div key={item.key} className="card p-5 hover:shadow-lift transition-all">
+              <motion.div
+                key={item.key}
+                whileHover={{ y: -4, scale: 1.02 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 24 }}
+                className="card p-5 hover:shadow-lift transition-all"
+              >
                 <div className="flex items-center justify-between text-muted mb-2">
                   <span className="text-xs font-semibold text-ink">{item.name}</span>
                   <Icon className="h-4 w-4 text-accent/80" />
@@ -520,7 +525,7 @@ export default function Performance() {
                   {item.plainQuestion}
                 </div>
                 <div className="mt-1 text-[10px] text-muted leading-tight">{item.hint}</div>
-              </div>
+              </motion.div>
             );
           })}
         </Reveal>

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Check,
@@ -8,15 +8,16 @@ import {
   FlaskConical,
   RotateCcw,
   X,
-  HelpCircle,
   ChevronDown,
   ChevronUp,
-  Info,
   Sparkles,
-  ShieldAlert,
+  Play,
+  Square,
+  Sliders,
+  Eye,
 } from 'lucide-react';
 import { BUNDLE, FEATURES, MODEL_ORDER, PRIMARY, predict } from '../lib/engine.js';
-import { Counter, EASE, Reveal, SectionHeader, pct, ResearchDisclaimer } from './ui.jsx';
+import { Counter, EASE, Reveal, SectionHeader, pct } from './ui.jsx';
 
 const SHORT = {
   'ANN (MLP)': 'Neural Network (ANN)',
@@ -38,7 +39,6 @@ const FEATURE_EXPLANATIONS = {
   mitoses: 'Division rate: 1 = no dividing cells observed, 10 = active abnormal cell division',
 };
 
-/* ---------- presets built from real held-out test cases ---------- */
 function usePresets() {
   return useMemo(() => {
     const cases = BUNDLE.cases;
@@ -51,30 +51,122 @@ function usePresets() {
   }, []);
 }
 
-/* ---------- one feature row: 1..10 selector ---------- */
-function ScoreRow({ feature, value, onChange }) {
-  const explanation = FEATURE_EXPLANATIONS[feature.key] || feature.hint;
-  const currentVal = value ?? 1;
-  const isHighAbnormal = currentVal >= 7;
-  const isModerate = currentVal >= 4 && currentVal < 7;
+/* ---------- Live Reactive Cell Preview (morphs based on user's 9 scores!) ---------- */
+function LiveCellPreview({ values, mal }) {
+  const clump = values[0] || 1;
+  const sizeU = values[1] || 1;
+  const shapeU = values[2] || 1;
+  const bareN = values[5] || 1;
+  const chrom = values[6] || 1;
+  const mitoses = values[8] || 1;
+
+  const baseR = 22 + sizeU * 1.6;
+  const squash = Math.max(0.58, 1 - shapeU * 0.04);
+  const nucR = baseR * (0.32 + bareN * 0.032);
+  const satelliteCount = Math.min(6, Math.floor((clump + mitoses) / 3));
+
+  const mainColor = mal ? 'rgb(var(--malignant))' : 'rgb(var(--benign))';
 
   return (
-    <div className="border-b border-line/70 py-4 last:border-0 transition-colors">
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+    <div className="mt-4 flex items-center gap-4 rounded-xl border border-line bg-soft/60 p-3">
+      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-line bg-card shadow-inner">
+        <svg viewBox="0 0 100 100" className="h-full w-full">
+          {/* Satellite cells representing clump thickness & mitoses */}
+          {Array.from({ length: satelliteCount }).map((_, idx) => {
+            const ang = (idx / Math.max(1, satelliteCount)) * Math.PI * 2;
+            const dist = 22 + (clump % 3) * 3;
+            return (
+              <motion.circle
+                key={idx}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{
+                  cx: 50 + Math.cos(ang) * dist,
+                  cy: 50 + Math.sin(ang) * dist,
+                  r: 7 + (sizeU % 4),
+                  scale: 1,
+                  opacity: 0.45,
+                }}
+                transition={{ type: 'spring', stiffness: 200, damping: 18 }}
+                fill={mainColor}
+              />
+            );
+          })}
+          {/* Primary cell body */}
+          <motion.ellipse
+            cx="50"
+            cy="50"
+            animate={{
+              rx: baseR,
+              ry: baseR * squash,
+              rotate: shapeU * 8,
+            }}
+            transition={{ type: 'spring', stiffness: 180, damping: 18 }}
+            fill={mal ? 'rgb(var(--malignant) / 0.22)' : 'rgb(var(--benign) / 0.18)'}
+            stroke={mainColor}
+            strokeWidth="2"
+          />
+          {/* Cell Nucleus */}
+          <motion.ellipse
+            animate={{
+              cx: 50 + (shapeU > 5 ? 4 : 0),
+              cy: 50,
+              rx: nucR,
+              ry: nucR * (mal ? 0.82 : 0.96),
+            }}
+            transition={{ type: 'spring', stiffness: 200, damping: 18 }}
+            fill={mainColor}
+            fillOpacity={0.45 + chrom * 0.05}
+          />
+        </svg>
+      </div>
+      <div className="min-w-0 flex-1 text-xs">
+        <div className="flex items-center gap-1.5 font-semibold text-ink">
+          <Eye className="h-3.5 w-3.5 text-accent" />
+          <span>Live Simulated Cell Morphology</span>
+        </div>
+        <p className="mt-0.5 text-[11px] leading-snug text-muted">
+          {mal
+            ? 'Enlarged irregular nucleus with dense chromatin & multi-cell clustering.'
+            : 'Small regular nucleus with uniform cell membrane & normal spacing.'}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- one feature row: 1..10 selector + unknown "?" for Bare Nuclei ---------- */
+function ScoreRow({ feature, value, onChange, allowUnknown }) {
+  const explanation = FEATURE_EXPLANATIONS[feature.key] || feature.hint;
+  const isUnknown = value === null || value === undefined;
+  const currentVal = isUnknown ? 1 : value;
+  const isHighAbnormal = !isUnknown && currentVal >= 7;
+  const isModerate = !isUnknown && currentVal >= 4 && currentVal < 7;
+
+  return (
+    <motion.div
+      layout
+      className="border-b border-line/70 py-4 last:border-0 transition-colors hover:bg-soft/25 -mx-3 px-3 rounded-xl"
+    >
+      <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-[14px] font-semibold text-ink">{feature.label}</span>
-            <span
+            <motion.span
+              key={isUnknown ? 'unk' : isHighAbnormal ? 'abn' : isModerate ? 'mod' : 'norm'}
+              initial={{ scale: 0.85, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
               className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
-                isHighAbnormal
+                isUnknown
+                  ? 'bg-accent/15 text-accent'
+                  : isHighAbnormal
                   ? 'bg-malignant/15 text-malignant'
                   : isModerate
                   ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300'
                   : 'bg-benign/15 text-benign'
               }`}
             >
-              {isHighAbnormal ? 'Abnormal' : isModerate ? 'Moderate' : 'Normal'}
-            </span>
+              {isUnknown ? 'Imputed (Median 1.0)' : isHighAbnormal ? 'High Risk (7–10)' : isModerate ? 'Moderate (4–6)' : 'Normal (1–3)'}
+            </motion.span>
           </div>
           <div className="text-xs text-muted mt-0.5">{explanation}</div>
         </div>
@@ -83,16 +175,22 @@ function ScoreRow({ feature, value, onChange }) {
           <span className="text-xs font-mono text-muted">Score:</span>
           <AnimatePresence mode="popLayout" initial={false}>
             <motion.span
-              key={String(currentVal)}
-              initial={{ y: -8, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 8, opacity: 0 }}
-              transition={{ duration: 0.18 }}
+              key={String(value)}
+              initial={{ y: -10, scale: 0.8, opacity: 0 }}
+              animate={{ y: 0, scale: 1, opacity: 1 }}
+              exit={{ y: 10, scale: 0.8, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 24 }}
               className={`min-w-[2.2ch] text-right font-display text-2xl font-bold leading-none ${
-                isHighAbnormal ? 'text-malignant' : isModerate ? 'text-amber-600 dark:text-amber-400' : 'text-benign'
+                isUnknown
+                  ? 'text-accent'
+                  : isHighAbnormal
+                  ? 'text-malignant'
+                  : isModerate
+                  ? 'text-amber-600 dark:text-amber-400'
+                  : 'text-benign'
               }`}
             >
-              {currentVal}
+              {isUnknown ? '?' : currentVal}
             </motion.span>
           </AnimatePresence>
         </div>
@@ -101,34 +199,62 @@ function ScoreRow({ feature, value, onChange }) {
       {/* Button selector from 1 to 10 */}
       <div className="flex items-center gap-1 sm:gap-1.5" role="radiogroup" aria-label={feature.label}>
         {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => {
-          const active = currentVal === n;
+          const active = !isUnknown && currentVal === n;
           return (
-            <button
+            <motion.button
               key={n}
               type="button"
               role="radio"
               aria-checked={active}
               aria-label={`${feature.label} score ${n} of 10`}
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.9 }}
               onClick={() => onChange(n)}
-              className={`relative h-10 flex-1 min-w-[28px] rounded-lg font-mono text-[13px] font-medium transition-all ${
+              className={`relative h-10 flex-1 min-w-[26px] rounded-lg font-mono text-[13px] font-medium transition-colors ${
                 active
                   ? 'shadow-sm text-paper font-bold'
-                  : 'bg-soft/80 text-muted hover:bg-line hover:text-ink active:scale-95'
+                  : 'bg-soft/80 text-muted hover:bg-line hover:text-ink'
               }`}
             >
               {active && (
                 <motion.span
                   layoutId={`pick-${feature.key}`}
-                  className="absolute inset-0 rounded-lg bg-ink"
-                  transition={{ type: 'spring', stiffness: 520, damping: 36 }}
+                  className={`absolute inset-0 rounded-lg ${
+                    n >= 7 ? 'bg-malignant' : n >= 4 ? 'bg-amber-600' : 'bg-ink'
+                  }`}
+                  transition={{ type: 'spring', stiffness: 520, damping: 34 }}
                 />
               )}
               <span className={`relative z-10 ${active ? 'text-paper' : ''}`}>{n}</span>
-            </button>
+            </motion.button>
           );
         })}
+
+        {allowUnknown && (
+          <motion.button
+            type="button"
+            role="radio"
+            aria-checked={isUnknown}
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => onChange(null)}
+            title="Simulate missing value (?) — pipeline fills with training median (1.0)"
+            className={`relative h-10 px-2.5 rounded-lg font-mono text-[12px] font-semibold transition-colors ${
+              isUnknown ? 'text-paper shadow-sm' : 'bg-soft/80 text-muted hover:bg-line hover:text-ink'
+            }`}
+          >
+            {isUnknown && (
+              <motion.span
+                layoutId={`pick-${feature.key}`}
+                className="absolute inset-0 rounded-lg bg-accent"
+                transition={{ type: 'spring', stiffness: 520, damping: 34 }}
+              />
+            )}
+            <span className="relative z-10">?</span>
+          </motion.button>
+        )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -139,9 +265,7 @@ function Gauge({ p, mal }) {
   return (
     <div className="relative mx-auto w-full max-w-[270px]">
       <svg viewBox="0 0 220 125" className="w-full">
-        {/* Track background */}
         <path d={d} fill="none" stroke="rgb(var(--soft))" strokeWidth="15" strokeLinecap="round" />
-        {/* Animated fill */}
         <motion.path
           d={d}
           fill="none"
@@ -150,9 +274,8 @@ function Gauge({ p, mal }) {
           strokeLinecap="round"
           initial={{ pathLength: 0 }}
           animate={{ pathLength: Math.max(0.008, p), stroke: color }}
-          transition={{ type: 'spring', stiffness: 60, damping: 16 }}
+          transition={{ type: 'spring', stiffness: 60, damping: 15 }}
         />
-        {/* Markers */}
         {[0, 0.25, 0.5, 0.75, 1].map((t) => {
           const a = Math.PI * (1 - t);
           return (
@@ -171,7 +294,7 @@ function Gauge({ p, mal }) {
       </svg>
       <div className="absolute inset-x-0 bottom-1 text-center">
         <div className="font-display text-5xl font-bold leading-none" style={{ color }}>
-          <Counter value={p * 100} decimals={1} suffix="%" duration={0.8} />
+          <Counter value={p * 100} decimals={1} suffix="%" duration={0.7} />
         </div>
         <div className="mt-1 text-xs font-medium text-muted">
           Estimated Malignancy Probability
@@ -183,15 +306,19 @@ function Gauge({ p, mal }) {
 
 /* ---------- Result Card ---------- */
 function ResultCard({ result, loadedCase }) {
-  const { primary, models } = result;
+  const { primary, models, filled } = result;
   const mal = primary.pred === 1;
   const agree = models.filter((m) => m.pred === primary.pred).length;
   const correct = loadedCase ? loadedCase.y === primary.pred : null;
-  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(true);
 
   return (
-    <div className="card overflow-hidden border-2 shadow-card" style={{ borderColor: mal ? 'rgb(var(--malignant) / 0.3)' : 'rgb(var(--benign) / 0.3)' }}>
-      {/* Real Test Case Banner (if loaded from preset or table) */}
+    <motion.div
+      layout
+      className="card overflow-hidden border-2 shadow-card transition-colors duration-500"
+      style={{ borderColor: mal ? 'rgb(var(--malignant) / 0.4)' : 'rgb(var(--benign) / 0.4)' }}
+    >
+      {/* Real Test Case Banner */}
       <AnimatePresence initial={false}>
         {loadedCase && (
           <motion.div
@@ -206,21 +333,25 @@ function ResultCard({ result, loadedCase }) {
                 correct ? 'border-benign/30 bg-benign/10' : 'border-malignant/30 bg-malignant/10'
               }`}
             >
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-ink">Test Case #{loadedCase.id}:</span>
-                <span className="text-muted">Confirmed pathology:</span>
-                <span className={`font-semibold ${loadedCase.y ? 'text-malignant' : 'text-benign'}`}>
-                  {loadedCase.y ? 'Malignant (Cancerous)' : 'Benign (Non-Cancerous)'}
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="font-semibold text-ink">Patient #{loadedCase.id}:</span>
+                <span className="text-muted">Actual Lab Result:</span>
+                <span className={`font-bold ${loadedCase.y ? 'text-malignant' : 'text-benign'}`}>
+                  {loadedCase.y ? 'Malignant' : 'Benign'}
                 </span>
               </div>
-              <span
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${
+              <motion.span
+                key={String( loadedCase.id ) + String(correct)}
+                initial={{ scale: 0.6 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 450, damping: 18 }}
+                className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${
                   correct ? 'bg-benign text-paper' : 'bg-malignant text-paper'
                 }`}
               >
                 {correct ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
-                {correct ? 'Match ✓' : 'Disagreement'}
-              </span>
+                {correct ? 'Accurate ✓' : 'Mismatch'}
+              </motion.span>
             </div>
           </motion.div>
         )}
@@ -228,19 +359,25 @@ function ResultCard({ result, loadedCase }) {
 
       <div className="p-6 sm:p-7">
         <div className="flex items-center justify-between mb-3">
-          <span className="eyebrow">Model Prediction</span>
-          <span className="text-[11px] font-mono text-muted">Primary: {PRIMARY}</span>
+          <span className="eyebrow">Live AI Diagnosis</span>
+          <span className="rounded-full bg-soft px-2.5 py-0.5 text-[11px] font-mono text-muted">
+            Primary: {PRIMARY}
+          </span>
         </div>
 
         {/* Big visual classification result */}
-        <div className="flex items-center gap-3">
-          <div
-            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${
+        <div className="flex items-center gap-3.5">
+          <motion.div
+            key={mal ? 'icon-m' : 'icon-b'}
+            initial={{ scale: 0.5, rotate: -15 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 18 }}
+            className={`flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl p-3 ${
               mal ? 'bg-malignant/15 text-malignant' : 'bg-benign/15 text-benign'
             }`}
           >
             {mal ? <AlertOctagon className="h-7 w-7" /> : <CheckCircle2 className="h-7 w-7" />}
-          </div>
+          </motion.div>
           <div>
             <AnimatePresence mode="wait" initial={false}>
               <motion.h3
@@ -248,7 +385,7 @@ function ResultCard({ result, loadedCase }) {
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: -20, opacity: 0 }}
-                transition={{ duration: 0.3, ease: EASE }}
+                transition={{ duration: 0.28, ease: EASE }}
                 className={`font-display text-3xl sm:text-4xl leading-tight font-bold ${
                   mal ? 'text-malignant' : 'text-benign'
                 }`}
@@ -257,30 +394,36 @@ function ResultCard({ result, loadedCase }) {
               </motion.h3>
             </AnimatePresence>
             <div className="text-xs font-medium text-muted">
-              {mal ? 'Cell morphology indicates cancerous changes' : 'Cell morphology indicates non-cancerous tissue'}
+              {mal ? 'High cellular atypia detected' : 'Consistent with healthy benign tissue'}
             </div>
           </div>
         </div>
 
+        {/* Live Reactive Cell Morphology Preview */}
+        <LiveCellPreview values={filled} mal={mal} />
+
         {/* Probability Gauge */}
-        <div className="mt-6 border-y border-line py-5">
+        <div className="mt-5 border-y border-line py-4">
           <Gauge p={primary.score} mal={mal} />
         </div>
 
         {/* Model consensus bar */}
-        <div className="mt-5 flex items-center justify-between rounded-xl bg-soft/80 px-4 py-3 border border-line/60">
+        <div className="mt-4 flex items-center justify-between rounded-xl bg-soft/80 px-4 py-3 border border-line/60">
           <div>
             <div className="text-[13px] font-semibold text-ink">
               {agree} of 5 Models Agree
             </div>
             <div className="text-[11px] text-muted">
-              {agree === 5 ? 'Unanimous consensus across all algorithms' : `${5 - agree} model(s) gave contrasting output`}
+              {agree === 5 ? 'Unanimous agreement across all 5 pipelines' : `${5 - agree} model(s) differ`}
             </div>
           </div>
           <div className="flex items-center gap-1.5" title="Consensus across all 5 models">
-            {models.map((m) => (
-              <span
-                key={m.name}
+            {models.map((m, idx) => (
+              <motion.span
+                key={m.name + m.pred}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 480, damping: 18, delay: idx * 0.04 }}
                 title={`${m.name}: ${m.pred ? 'Malignant' : 'Benign'}`}
                 className={`h-4 w-4 rounded-full border-2 border-card ${m.pred ? 'bg-malignant' : 'bg-benign'}`}
               />
@@ -288,38 +431,28 @@ function ResultCard({ result, loadedCase }) {
           </div>
         </div>
 
-        {/* Plain English explanation box */}
-        <div className="mt-4 rounded-xl bg-card border border-line p-3.5 text-xs leading-relaxed text-muted">
-          <p>
-            <strong className="text-ink font-medium">What this means: </strong>
-            {mal
-              ? 'Malignant cells show irregular shapes, nuclear enlargement, and clustered growth. In clinical practice, this pattern warrants urgent histological biopsy.'
-              : 'Benign cells show uniform size, intact cell adhesion, and normal nuclei. This pattern is characteristic of healthy or non-cancerous breast tissue.'}
-          </p>
-        </div>
-
-        {/* Expandable Model Comparison */}
-        <div className="mt-5 border-t border-line pt-4">
+        {/* Expandable 5-Model Breakdown (Open by default so users see all 5 models animate live!) */}
+        <div className="mt-4 border-t border-line pt-3">
           <button
             type="button"
             onClick={() => setDetailsOpen(!detailsOpen)}
-            className="flex w-full items-center justify-between py-2 text-xs font-semibold text-ink hover:text-accent transition-colors"
+            className="flex w-full items-center justify-between py-1.5 text-xs font-semibold text-ink hover:text-accent transition-colors"
           >
-            <span>Inspect All 5 Model Predictions</span>
+            <span>All 5 Models Live Breakdown</span>
             <span className="flex items-center gap-1 text-muted text-[11px]">
-              {detailsOpen ? 'Hide' : 'Show breakdown'}
+              {detailsOpen ? 'Hide' : 'Show'}
               {detailsOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
             </span>
           </button>
 
-          <AnimatePresence>
+          <AnimatePresence initial={false}>
             {detailsOpen && (
               <motion.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.3, ease: EASE }}
-                className="overflow-hidden space-y-3 pt-3"
+                className="overflow-hidden space-y-2.5 pt-2.5"
               >
                 {models.map((m) => (
                   <div key={m.name} className="rounded-lg bg-soft/50 p-2.5 text-xs">
@@ -328,7 +461,7 @@ function ResultCard({ result, loadedCase }) {
                         {SHORT[m.name] || m.name}
                         {m.name === PRIMARY && (
                           <span className="rounded-full bg-accent/15 text-accent px-1.5 py-0.2 text-[10px] font-mono font-semibold">
-                            Primary
+                            Best
                           </span>
                         )}
                       </span>
@@ -341,28 +474,17 @@ function ResultCard({ result, loadedCase }) {
                         className={`h-full rounded-full ${m.pred ? 'bg-malignant' : 'bg-benign'}`}
                         initial={{ width: 0 }}
                         animate={{ width: `${Math.max(2, m.score * 100)}%` }}
-                        transition={{ duration: 0.5 }}
+                        transition={{ type: 'spring', stiffness: 110, damping: 18 }}
                       />
                     </div>
                   </div>
                 ))}
-                <p className="text-[11px] text-muted pt-1">
-                  SVM outputs a scaled decision distance. Decision Tree and Random Forest use leaf purity ratios.
-                </p>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
-
-        {/* Disclaimer */}
-        <div className="mt-5 pt-3 border-t border-line/60">
-          <p className="text-[11px] leading-relaxed text-muted">
-            <span className="font-medium text-ink/80">Research Note: </span>
-            This tool provides statistical machine learning estimates for educational demonstration only. Not a medical diagnostic device.
-          </p>
-        </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -376,16 +498,15 @@ function Profile({ values }) {
           <div className="eyebrow mb-1">Comparative Cytology Benchmark</div>
           <h3 className="font-display text-2xl sm:text-3xl font-semibold">Where This Sample Sits</h3>
           <p className="text-xs text-muted mt-1 max-w-xl">
-            Compare each feature of your current sample against the historical training averages for confirmed
-            benign vs. malignant biopsies.
+            Watch the dark marker slide between the historical Benign average (green) and Malignant average (red) as you change any score above.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-4 text-xs font-medium">
           <span className="flex items-center gap-1.5 text-benign">
-            <span className="h-3 w-1.5 rounded-full bg-benign" /> Benign Average
+            <span className="h-3 w-1.5 rounded-full bg-benign" /> Benign Mean
           </span>
           <span className="flex items-center gap-1.5 text-malignant">
-            <span className="h-3 w-1.5 rounded-full bg-malignant" /> Malignant Average
+            <span className="h-3 w-1.5 rounded-full bg-malignant" /> Malignant Mean
           </span>
           <span className="flex items-center gap-1.5 text-ink">
             <span className="h-3.5 w-3.5 rounded-full border-2 border-paper bg-ink ring-1 ring-ink" /> Your Sample
@@ -400,10 +521,7 @@ function Profile({ values }) {
               {f.label}
             </div>
             <div className="relative h-7">
-              {/* Baseline axis */}
               <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-soft" />
-
-              {/* Tick marks */}
               {Array.from({ length: 10 }).map((_, k) => (
                 <div
                   key={k}
@@ -411,30 +529,24 @@ function Profile({ values }) {
                   style={{ left: `${(k / 9) * 100}%` }}
                 />
               ))}
-
-              {/* Benign Mean Marker */}
               <motion.div
                 initial={{ opacity: 0, scaleY: 0 }}
                 whileInView={{ opacity: 1, scaleY: 1 }}
                 viewport={{ once: true }}
-                transition={{ delay: 0.05 + i * 0.03 }}
+                transition={{ delay: 0.04 + i * 0.03 }}
                 title={`Benign average: ${BUNDLE.means.benign[i].toFixed(1)}`}
                 className="absolute top-1/2 h-4 w-1.5 rounded bg-benign shadow-sm"
                 style={{ left: pos(BUNDLE.means.benign[i]), x: '-50%', y: '-50%' }}
               />
-
-              {/* Malignant Mean Marker */}
               <motion.div
                 initial={{ opacity: 0, scaleY: 0 }}
                 whileInView={{ opacity: 1, scaleY: 1 }}
                 viewport={{ once: true }}
-                transition={{ delay: 0.1 + i * 0.03 }}
+                transition={{ delay: 0.08 + i * 0.03 }}
                 title={`Malignant average: ${BUNDLE.means.malignant[i].toFixed(1)}`}
                 className="absolute top-1/2 h-4 w-1.5 rounded bg-malignant shadow-sm"
                 style={{ left: pos(BUNDLE.means.malignant[i]), x: '-50%', y: '-50%' }}
               />
-
-              {/* Current Sample Marker */}
               <motion.div
                 className="absolute top-1/2 h-5 w-5 rounded-full border-2 border-card bg-ink shadow-md"
                 style={{ x: '-50%', y: '-50%' }}
@@ -463,21 +575,69 @@ function Profile({ values }) {
 export default function Diagnose({ values, setValues, loadedCase, loadCase }) {
   const presets = usePresets();
   const result = useMemo(() => predict(values), [values]);
+  const [activePreset, setActivePreset] = useState('benign');
+  const [tourRunning, setTourRunning] = useState(false);
+  const tourTimer = useRef(null);
 
   const setOne = (i, v) => {
+    stopTour();
+    setActivePreset(null);
     const next = values.slice();
     next[i] = v;
     setValues(next, null);
   };
 
+  const applyPresetCard = (key, caseObj) => {
+    stopTour();
+    setActivePreset(key);
+    loadCase(caseObj, false);
+  };
+
   const randomCase = () => {
+    stopTour();
+    setActivePreset('random');
     const pool = BUNDLE.cases.filter((c) => !loadedCase || c.id !== loadedCase.id);
-    loadCase(pool[Math.floor(Math.random() * pool.length)]);
+    loadCase(pool[Math.floor(Math.random() * pool.length)], false);
   };
 
   const resetAll = () => {
+    stopTour();
+    setActivePreset(null);
     setValues(Array(9).fill(1), null);
   };
+
+  const stopTour = () => {
+    if (tourTimer.current) {
+      clearInterval(tourTimer.current);
+      tourTimer.current = null;
+    }
+    setTourRunning(false);
+  };
+
+  const toggleAutoTour = () => {
+    if (tourRunning) {
+      stopTour();
+      return;
+    }
+    setTourRunning(true);
+    const steps = [
+      ['benign', presets.benign],
+      ['borderline', presets.borderline],
+      ['malignant', presets.malignant],
+    ].filter(([, c]) => Boolean(c));
+
+    let idx = 0;
+    setActivePreset(steps[0][0]);
+    loadCase(steps[0][1], false);
+
+    tourTimer.current = setInterval(() => {
+      idx = (idx + 1) % steps.length;
+      setActivePreset(steps[idx][0]);
+      loadCase(steps[idx][1], false);
+    }, 2200);
+  };
+
+  useEffect(() => () => stopTour(), []);
 
   return (
     <section id="try" className="mx-auto max-w-6xl px-5 py-20">
@@ -486,126 +646,184 @@ export default function Diagnose({ values, setValues, loadedCase, loadCase }) {
         eyebrow="Interactive Cytology Classifier"
         title={<>Score a biopsy sample, <em className="text-accent">see real-time predictions.</em></>}
       >
-        Select values from 1 (healthy baseline) to 10 (severe cellular abnormality) for the nine microscopic features below.
-        The consensus across all five models updates instantly.
+        Pick a score from 1 (healthy) to 10 (abnormal) for each cell feature, or click a patient preset below to
+        watch all five models respond in real time.
       </SectionHeader>
 
-      {/* Beginner Instruction & User Guide Card */}
-      <Reveal className="mb-8 rounded-2xl border border-line bg-card/60 p-5 shadow-sm">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent mt-0.5">
-              <Sparkles className="h-5 w-5" />
-            </div>
-            <div>
-              <h4 className="text-sm font-semibold text-ink">How to Use This Classifier:</h4>
-              <p className="text-xs text-muted mt-0.5 leading-relaxed">
-                Score each feature from <strong className="text-benign">1 (Normal)</strong> to <strong className="text-malignant">10 (Abnormal)</strong>.
-                Not sure what values to try? Click a ready-made preset below to load a verified patient biopsy into the system.
-              </p>
-            </div>
+      {/* Visual 3-Step Beginner Bar + Auto-Play Demo Button */}
+      <Reveal className="mb-7 rounded-2xl border border-line bg-card p-4 sm:p-5 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
+            {[
+              ['Step 1', 'Pick a Patient Preset', 'Start with Benign, Malignant, or Random'],
+              ['Step 2', 'Tap Any Score (1–10)', 'Adjust cell size, shape, or bare nuclei'],
+              ['Step 3', 'Compare 5 AI Models', 'See probability & simulated cell shape'],
+            ].map(([step, title, sub], i) => (
+              <div key={step} className="flex items-center gap-3 rounded-xl bg-soft/60 px-3.5 py-2.5">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ink text-paper font-mono text-xs font-bold">
+                  {i + 1}
+                </span>
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold text-ink truncate">{title}</div>
+                  <div className="text-[11px] text-muted truncate">{sub}</div>
+                </div>
+              </div>
+            ))}
           </div>
-          <button
-            onClick={resetAll}
-            className="chip shrink-0 text-muted hover:text-ink text-xs"
-            title="Reset all 9 features to 1 (normal baseline)"
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-            <span>Reset to Normal (All 1s)</span>
-          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleAutoTour}
+              className={`btn text-xs px-4 py-2.5 ${
+                tourRunning
+                  ? 'bg-malignant text-paper shadow-md'
+                  : 'bg-accent text-paper hover:opacity-95 shadow-sm'
+              }`}
+            >
+              {tourRunning ? <Square className="h-3.5 w-3.5 fill-current" /> : <Play className="h-3.5 w-3.5 fill-current" />}
+              <span>{tourRunning ? 'Stop Auto-Demo' : 'Auto-Play Demo'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={resetAll}
+              className="chip py-2.5 text-xs text-muted hover:text-ink"
+              title="Reset all 9 features to 1"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              <span>Reset</span>
+            </button>
+          </div>
         </div>
       </Reveal>
 
-      {/* Quick-Start Preset Examples */}
+      {/* Quick-Start Preset Examples with animated active border */}
       <Reveal className="mb-8">
-        <div className="eyebrow mb-2.5">Quick-Start Real Biopsy Presets:</div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           {presets.benign && (
-            <button
-              onClick={() => loadCase(presets.benign)}
-              className="card p-3.5 text-left hover:border-benign/60 hover:shadow-lift transition-all group active:scale-[0.98]"
+            <motion.button
+              whileHover={{ y: -3 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => applyPresetCard('benign', presets.benign)}
+              className={`card p-4 text-left transition-all ${
+                activePreset === 'benign'
+                  ? 'border-2 border-benign ring-4 ring-benign/10 shadow-lift'
+                  : 'hover:border-benign/60 hover:shadow-lift'
+              }`}
             >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-semibold text-ink flex items-center gap-1.5">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-bold text-ink flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full bg-benign" />
                   Benign Example
                 </span>
-                <span className="font-mono text-[10px] text-muted">#{presets.benign.id}</span>
+                <span className="font-mono text-[10px] rounded-full bg-benign/15 text-benign px-2 py-0.5 font-semibold">
+                  #{presets.benign.id}
+                </span>
               </div>
-              <p className="text-[11px] text-muted leading-snug">
-                Loads a confirmed non-cancerous biopsy with low scores (mostly 1s and 2s).
+              <p className="text-[11.5px] text-muted leading-snug">
+                Healthy non-cancerous biopsy with low, uniform cell scores (1–2).
               </p>
-            </button>
+            </motion.button>
           )}
 
           {presets.malignant && (
-            <button
-              onClick={() => loadCase(presets.malignant)}
-              className="card p-3.5 text-left hover:border-malignant/60 hover:shadow-lift transition-all group active:scale-[0.98]"
+            <motion.button
+              whileHover={{ y: -3 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => applyPresetCard('malignant', presets.malignant)}
+              className={`card p-4 text-left transition-all ${
+                activePreset === 'malignant'
+                  ? 'border-2 border-malignant ring-4 ring-malignant/10 shadow-lift'
+                  : 'hover:border-malignant/60 hover:shadow-lift'
+              }`}
             >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-semibold text-ink flex items-center gap-1.5">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-bold text-ink flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full bg-malignant" />
                   Malignant Example
                 </span>
-                <span className="font-mono text-[10px] text-muted">#{presets.malignant.id}</span>
+                <span className="font-mono text-[10px] rounded-full bg-malignant/15 text-malignant px-2 py-0.5 font-semibold">
+                  #{presets.malignant.id}
+                </span>
               </div>
-              <p className="text-[11px] text-muted leading-snug">
-                Loads a confirmed cancerous case showing severe cellular clustering and atypia.
+              <p className="text-[11.5px] text-muted leading-snug">
+                Confirmed carcinoma with severe cellular enlargement &amp; atypia.
               </p>
-            </button>
+            </motion.button>
           )}
 
           {presets.borderline && (
-            <button
-              onClick={() => loadCase(presets.borderline)}
-              className="card p-3.5 text-left hover:border-amber-500/60 hover:shadow-lift transition-all group active:scale-[0.98]"
+            <motion.button
+              whileHover={{ y: -3 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => applyPresetCard('borderline', presets.borderline)}
+              className={`card p-4 text-left transition-all ${
+                activePreset === 'borderline'
+                  ? 'border-2 border-amber-500 ring-4 ring-amber-500/10 shadow-lift'
+                  : 'hover:border-amber-500/60 hover:shadow-lift'
+              }`}
             >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-semibold text-ink flex items-center gap-1.5">
-                  <FlaskConical className="h-3 w-3 text-amber-500" />
-                  Borderline Example
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-bold text-ink flex items-center gap-2">
+                  <FlaskConical className="h-3.5 w-3.5 text-amber-500" />
+                  Borderline Case
                 </span>
-                <span className="font-mono text-[10px] text-muted">#{presets.borderline.id}</span>
+                <span className="font-mono text-[10px] rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 px-2 py-0.5 font-semibold">
+                  #{presets.borderline.id}
+                </span>
               </div>
-              <p className="text-[11px] text-muted leading-snug">
-                Loads an ambiguous case where individual algorithms show differing confidence.
+              <p className="text-[11.5px] text-muted leading-snug">
+                Intermediate biopsy where individual algorithms vote differently.
               </p>
-            </button>
+            </motion.button>
           )}
 
-          <button
+          <motion.button
+            whileHover={{ y: -3 }}
+            whileTap={{ scale: 0.98 }}
             onClick={randomCase}
-            className="card p-3.5 text-left hover:border-ink/40 hover:shadow-lift transition-all group active:scale-[0.98]"
+            className={`card p-4 text-left transition-all group ${
+              activePreset === 'random'
+                ? 'border-2 border-accent ring-4 ring-accent/10 shadow-lift'
+                : 'hover:border-ink/40 hover:shadow-lift'
+            }`}
           >
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-semibold text-ink flex items-center gap-1.5">
-                <Dices className="h-3.5 w-3.5 text-muted group-hover:rotate-45 transition-transform" />
-                Random Patient
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-bold text-ink flex items-center gap-2">
+                <Dices className="h-3.5 w-3.5 text-accent transition-transform duration-300 group-hover:rotate-180" />
+                Random Test Patient
               </span>
-              <span className="font-mono text-[10px] text-muted">Test Pool</span>
+              <span className="font-mono text-[10px] rounded-full bg-soft px-2 py-0.5 text-muted">
+                1 of 139
+              </span>
             </div>
-            <p className="text-[11px] text-muted leading-snug">
-              Picks an arbitrary sample from the 139 held-out test cases.
+            <p className="text-[11.5px] text-muted leading-snug">
+              Loads a random held-out patient and checks if the AI matches lab truth.
             </p>
-          </button>
+          </motion.button>
         </div>
       </Reveal>
 
       {/* Main interactive grid: 9 features (left) & Result card (right) */}
       <div className="grid items-start gap-8 lg:grid-cols-[1.18fr_0.82fr]">
         <Reveal className="card p-5 sm:p-7">
-          <div className="mb-4 flex items-center justify-between border-b border-line pb-3">
-            <div>
-              <h3 className="font-display text-2xl font-semibold">9 Cytology Features</h3>
-              <p className="text-xs text-muted">Adjust values to reflect microscopic biopsy findings</p>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-line pb-3">
+            <div className="flex items-center gap-2.5">
+              <Sliders className="h-5 w-5 text-accent" />
+              <div>
+                <h3 className="font-display text-2xl font-semibold">9 Microscopic Cell Features</h3>
+                <p className="text-xs text-muted">Tap any number (1–10) to test how each feature shifts risk</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-xs text-muted">
+            <div className="flex items-center gap-3 text-xs font-medium text-muted">
               <span className="flex items-center gap-1">
-                <span className="h-2 w-2 rounded-full bg-benign" /> 1-3 Normal
+                <span className="h-2 w-2 rounded-full bg-benign" /> 1–3 Normal
               </span>
               <span className="flex items-center gap-1">
-                <span className="h-2 w-2 rounded-full bg-malignant" /> 7-10 Abnormal
+                <span className="h-2 w-2 rounded-full bg-amber-500" /> 4–6 Moderate
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="h-2 w-2 rounded-full bg-malignant" /> 7–10 High
               </span>
             </div>
           </div>
@@ -617,6 +835,7 @@ export default function Diagnose({ values, setValues, loadedCase, loadCase }) {
                 feature={f}
                 value={values[i]}
                 onChange={(v) => setOne(i, v)}
+                allowUnknown={f.key === 'bare_nuclei'}
               />
             ))}
           </div>

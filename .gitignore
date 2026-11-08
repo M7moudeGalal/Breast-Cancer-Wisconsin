@@ -28,3 +28,7 @@ Thumbs.db
 .env
 *.tmp
 *.log
+*.mp4
+qr_streamlit_*
+presentation.html
+public/presentation.html

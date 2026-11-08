@@ -130,12 +130,14 @@ function TestRunner() {
           const missed = state.done ? state.done - c : 0;
 
           return (
-            <div
+            <motion.div
               key={m}
+              whileHover={{ y: -3, scale: 1.015 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 24 }}
               className={`rounded-xl p-4 transition-all border ${
                 isPrimary
                   ? 'bg-card border-accent/40 shadow-sm ring-1 ring-accent/20'
-                  : 'bg-soft/70 border-line/60'
+                  : 'bg-soft/70 border-line/60 hover:bg-card'
               }`}
             >
               <div className="flex items-center justify-between gap-1 mb-1">
@@ -159,7 +161,7 @@ function TestRunner() {
                   </span>
                 )}
               </div>
-            </div>
+            </motion.div>
           );
         })}
       </div>
@@ -176,7 +178,7 @@ function TestRunner() {
             <div className="leading-relaxed">
               <strong>Perfect Match with Scikit-Learn:</strong> The in-browser inference reproduces the exact metrics
               calculated in the scientific Python notebook. Neural Network, Random Forest, and SVM each achieve 100% recall
-              on malignant cases (39 of 39 cancers detected).
+              on malignant cases ({BUNDLE.counts.test_malignant} of {BUNDLE.counts.test_malignant} cancers detected).
             </div>
           </motion.div>
         )}
