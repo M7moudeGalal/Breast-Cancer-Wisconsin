@@ -4,29 +4,16 @@ import { CheckCircle2, AlertOctagon, Info, AlertTriangle } from 'lucide-react';
 
 export const EASE = [0.22, 1, 0.36, 1];
 
-export function Reveal({ children, delay = 0, y = 20, className = '', as = 'div' }) {
-  const Comp = motion[as] || motion.div;
-  return (
-    <Comp
-      className={className}
-      initial={{ opacity: 0, y }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.6, ease: EASE, delay }}
-    >
-      {children}
-    </Comp>
-  );
+export function Reveal({ children, className = '', as = 'div' }) {
+  const Comp = as;
+  return <Comp className={className}>{children}</Comp>;
 }
 
-export function Counter({ value, decimals = 0, suffix = '', prefix = '', duration = 1.2, className = '' }) {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: '-20px' });
-  const [display, setDisplay] = useState(0);
+export function Counter({ value, decimals = 0, suffix = '', prefix = '', duration = 0.8, className = '' }) {
+  const [display, setDisplay] = useState(value);
   const from = useRef(0);
 
   useEffect(() => {
-    if (!inView) return undefined;
     const controls = animate(from.current, value, {
       duration,
       ease: EASE,
@@ -36,10 +23,10 @@ export function Counter({ value, decimals = 0, suffix = '', prefix = '', duratio
       },
     });
     return () => controls.stop();
-  }, [value, inView, duration]);
+  }, [value, duration]);
 
   return (
-    <span ref={ref} className={`tabular-nums ${className}`}>
+    <span className={`tabular-nums ${className}`}>
       {prefix}
       {display.toFixed(decimals)}
       {suffix}

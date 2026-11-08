@@ -79,7 +79,7 @@ export default function App() {
         window.history.replaceState(null, '', '#' + tabId);
       }
     } catch {}
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   };
 
   const setValues = (nextVals, c = null) => {
@@ -233,31 +233,31 @@ export default function App() {
         </AnimatePresence>
       </header>
 
-      {/* Main Tabbed Application View */}
+      {/* Main Persistent Tabbed Application View */}
       <main className="relative z-10 flex-1">
-        <AnimatePresence mode="sync" initial={false}>
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.16, ease: 'easeOut' }}
-          >
-            {activeTab === 'overview' && (
-              <Overview
-                onOpenGuide={() => setGuideOpen(true)}
-                onGoToTry={() => switchTab('try')}
-                onGoToCases={() => switchTab('cases')}
-              />
-            )}
-            {activeTab === 'try' && (
-              <Diagnose values={values} setValues={setValues} loadedCase={loadedCase} loadCase={loadCase} />
-            )}
-            {activeTab === 'cases' && <TestCases onTry={loadCase} />}
-            {activeTab === 'performance' && <Performance />}
-            {activeTab === 'figures' && <Figures />}
-          </motion.div>
-        </AnimatePresence>
+        <div className={activeTab === 'overview' ? 'block' : 'hidden'}>
+          <Overview
+            onOpenGuide={() => setGuideOpen(true)}
+            onGoToTry={() => switchTab('try')}
+            onGoToCases={() => switchTab('cases')}
+          />
+        </div>
+
+        <div className={activeTab === 'try' ? 'block' : 'hidden'}>
+          <Diagnose values={values} setValues={setValues} loadedCase={loadedCase} loadCase={loadCase} />
+        </div>
+
+        <div className={activeTab === 'cases' ? 'block' : 'hidden'}>
+          <TestCases onTry={loadCase} />
+        </div>
+
+        <div className={activeTab === 'performance' ? 'block' : 'hidden'}>
+          <Performance />
+        </div>
+
+        <div className={activeTab === 'figures' ? 'block' : 'hidden'}>
+          <Figures />
+        </div>
       </main>
 
       {/* Footer */}

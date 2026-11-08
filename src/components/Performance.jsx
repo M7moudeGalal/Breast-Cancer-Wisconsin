@@ -351,8 +351,7 @@ function Importance() {
               <motion.div
                 className="h-full rounded-full bg-accent"
                 initial={{ width: 0 }}
-                whileInView={{ width: `${(r.v / max) * 100}%` }}
-                viewport={{ once: true }}
+                animate={{ width: `${(r.v / max) * 100}%` }}
                 transition={{ duration: 0.8, ease: EASE, delay: i * 0.05 }}
               />
             </div>
